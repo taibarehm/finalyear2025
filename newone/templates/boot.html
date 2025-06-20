@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stress Detection Chatbot</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .chat-container {
+            width: 100%;
+            max-width: 450px;
+            background-color: #ffffff;
+            border-radius: 1.5rem; /* rounded-xl */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            min-height: 600px; /* Adjust as needed */
+        }
+        .chat-header {
+            background-color:rgb(15, 7, 28); /* Deep purple */
+            color: white;
+            padding: 1rem;
+            text-align: center;
+            font-weight: 600;
+            border-top-left-radius: 1.5rem;
+            border-top-right-radius: 1.5rem;
+        }
+        .chat-messages {
+            flex-grow: 1;
+            padding: 1.5rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            background-color: #f8fafc; /* Light gray for chat background */
+        }
+        .message {
+            max-width: 80%;
+            padding: 0.75rem 1rem;
+            border-radius: 1.25rem; /* rounded-2xl */
+            line-height: 1.5;
+        }
+        .message.bot {
+            background-color: #ede9fe; /* Light violet */
+            color: #000000; /* Changed to black */
+            align-self: flex-start;
+            border-bottom-left-radius: 0.25rem; /* rounded-bl-sm */
+        }
+        .message.user {
+            background-color:rgb(3, 2, 5); /* Medium purple */
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 0.25rem; /* rounded-br-sm */
+        }
+        .chat-input-area {
+            display: flex;
+            padding: 1rem;
+            background-color: #ffffff;
+            border-top: 1px solid #e2e8f0; /* Border for separation */
+            border-bottom-left-radius: 1.5rem;
+            border-bottom-right-radius: 1.5rem;
+        }
+        .chat-input {
+            flex-grow: 1;
+            border: 1px solid #cbd5e1; /* Gray border */
+            border-radius: 9999px; /* rounded-full */
+            padding: 0.75rem 1.25rem;
+            outline: none;
+            margin-right: 0.75rem;
+            transition: border-color 0.2s;
+        }
+        .chat-input:focus {
+            border-color:rgb(76, 67, 96); /* Focus color */
+        }
+        .send-button {
+            background-color:rgb(11, 9, 15); /* Deep purple */
+            color: white;
+            border: none;
+            border-radius: 9999px; /* rounded-full */
+            padding: 0.75rem 1.25rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+        .send-button:hover {
+            background-color:rgb(26, 24, 28); /* Darker purple on hover */
+        }
+        .options-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-top: 0.75rem;
+            justify-content: flex-start; /* Align options to start for bot */
+        }
+        .option-button {
+            background-color: #c4b5fd; /* Lighter purple */
+            color: #5b21b6; /* Darker violet */
+            padding: 0.5rem 1rem;
+            border-radius: 1rem; /* rounded-xl */
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+            border: 1px solid #a78bfa;
+            font-size: 0.875rem; /* text-sm */
+            font-weight: 500;
+        }
+        .option-button:hover {
+            background-color: #a78bfa; /* Slightly darker on hover */
+            color: white;
+            transform: translateY(-2px);
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            Stress Bot
+        </div>
+        <div class="chat-messages" id="chat-messages">
+            <!-- Chat messages will be appended here -->
+        </div>
+        <div class="chat-input-area">
+            +
+        </div>
+    </div>
+
+    <script type="module">
+        // Global variables for Firebase (MUST BE USED)
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        // Firebase imports (if needed, currently not used for this simple chatbot)
+        // import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        // import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        // import { getFirestore, collection, addDoc, serverTimestamp, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const chatMessages = document.getElementById('chat-messages');
+        const userInput = document.getElementById('user-input');
+        const sendButton = document.getElementById('send-button');
+
+        let currentQuestionIndex = 0;
+        let stressScore = 0;
+        const questions = [
+            {
+                text: "Hello! I'm here to help you check in with your stress levels. How have you been feeling overall in the past week?",
+                options: [
+                    { text: "Great, no stress!", score: 0 },
+                    { text: "Okay, a little ups and downs.", score: 1 },
+                    { text: "A bit stressed, manageable.", score: 2 },
+                    { text: "Quite stressed, feeling overwhelmed.", score: 3 },
+                    { text: "Very stressed, it's impacting me greatly.", score: 4 }
+                ]
+            },
+            {
+                text: "Have you noticed any changes in your sleep patterns (e.g., difficulty falling asleep, waking up frequently, or sleeping too much)?",
+                options: [
+                    { text: "No changes, sleeping well.", score: 0 },
+                    { text: "Slight changes, nothing major.", score: 1 },
+                    { text: "Some difficulty, affecting my day.", score: 2 },
+                    { text: "Significant changes, impacting energy.", score: 3 },
+                    { text: "My sleep is completely disrupted.", score: 4 }
+                ]
+            },
+            {
+                text: "How has your concentration or ability to focus on tasks been recently?",
+                options: [
+                    { text: "Normal, no issues focusing.", score: 0 },
+                    { text: "Occasionally distracted.", score: 1 },
+                    { text: "Hard to concentrate sometimes.", score: 2 },
+                    { text: "Often find myself unable to focus.", score: 3 },
+                    { text: "Almost impossible to concentrate.", score: 4 }
+                ]
+            },
+            {
+                text: "Have you been feeling irritable or easily annoyed by small things?",
+                options: [
+                    { text: "Not at all.", score: 0 },
+                    { text: "Rarely.", score: 1 },
+                    { text: "Sometimes.", score: 2 },
+                    { text: "Often.", score: 3 },
+                    { text: "Almost constantly.", score: 4 }
+                ]
+            },
+            {
+                text: "What about your interest in activities you usually enjoy (hobbies, social events)? Have you lost interest?",
+                options: [
+                    { text: "My interest is unchanged.", score: 0 },
+                    { text: "Slight decrease in interest.", score: 1 },
+                    { text: "Noticeably less interested.", score: 2 },
+                    { text: "Lost most interest.", score: 3 },
+                    { text: "No interest in anything.", score: 4 }
+                ]
+            },
+            {
+                text: "Thinking about physical symptoms, have you experienced headaches, muscle tension, or stomach issues more often?",
+                options: [
+                    { text: "No, generally feel fine.", score: 0 },
+                    { text: "Occasionally, minor discomfort.", score: 1 },
+                    { text: "Sometimes, noticeable.", score: 2 },
+                    { text: "Frequently, causing distress.", score: 3 },
+                    { text: "Almost daily, very bothersome.", score: 4 }
+                ]
+            }
+        ];
+
+        // Function to display a message in the chat
+        function displayMessage(text, sender, options = []) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message', sender);
+            messageDiv.innerHTML = text; // Use innerHTML to allow for bolding or other simple formatting
+            chatMessages.appendChild(messageDiv);
+
+            if (options.length > 0) {
+                const optionsContainer = document.createElement('div');
+                optionsContainer.classList.add('options-container');
+                options.forEach(option => {
+                    const optionButton = document.createElement('button');
+                    optionButton.classList.add('option-button');
+                    optionButton.textContent = option.text;
+                    optionButton.dataset.score = option.score;
+                    optionButton.addEventListener('click', () => handleOptionClick(option.score, option.text));
+                    optionsContainer.appendChild(optionButton);
+                });
+                chatMessages.appendChild(optionsContainer);
+            }
+
+            chatMessages.scrollTop = chatMessages.scrollHeight; // Scroll to bottom
+        }
+
+        // Function to handle user input (text or option click)
+        async function handleUserInput(messageText = null) {
+            let userResponse = messageText || userInput.value.trim();
+            if (userResponse === '' && !messageText) return; // Don't send empty messages
+
+            displayMessage(userResponse, 'user');
+            userInput.value = ''; // Clear input field
+
+            // Disable input and send button while bot is "typing"
+            userInput.disabled = true;
+            sendButton.disabled = true;
+
+            // Remove existing option buttons if any
+            const existingOptions = chatMessages.querySelectorAll('.options-container');
+            existingOptions.forEach(container => container.remove());
+
+            // Simulate typing delay
+            await new Promise(resolve => setTimeout(resolve, 800));
+
+            processChat(userResponse);
+        }
+
+        // Function to handle option button click
+        function handleOptionClick(score, text) {
+            stressScore += score;
+            displayMessage(text, 'user'); // Show the chosen option as user message
+
+            // Disable all option buttons after one is clicked
+            const optionButtons = chatMessages.querySelectorAll('.option-button');
+            optionButtons.forEach(button => button.disabled = true);
+
+            // Remove options container
+            const existingOptions = chatMessages.querySelectorAll('.options-container');
+            existingOptions.forEach(container => container.remove());
+
+            // Proceed to the next question or result after a short delay
+            setTimeout(() => {
+                currentQuestionIndex++;
+                processChat();
+            }, 800);
+        }
+
+        // Main chat logic
+        async function processChat() {
+            if (currentQuestionIndex < questions.length) {
+                const currentQ = questions[currentQuestionIndex];
+                displayMessage(currentQ.text, 'bot', currentQ.options);
+                userInput.disabled = true; // Input is disabled for options
+                sendButton.disabled = true;
+            } else {
+                // All questions asked, provide stress assessment
+                let resultMessage = "";
+                let suggestion = "";
+
+                if (stressScore <= 5) {
+                    resultMessage = "Based on your responses, your stress level seems to be **low**.";
+                    suggestion = "Keep up the good work! Continue practicing self-care and maintaining your healthy habits.";
+                } else if (stressScore <= 12) {
+                    resultMessage = "Based on your responses, your stress level appears to be **moderate**.";
+                    suggestion = "It seems you're experiencing some stress. Try incorporating relaxation techniques like deep breathing or mindfulness, and consider talking to a friend or family member.";
+                } else if (stressScore <= 20) {
+                    resultMessage = "Based on your responses, your stress level seems to be **high**.";
+                    suggestion = "You're experiencing significant stress. It might be helpful to reach out to a professional, such as a counselor or therapist, for support. Also, prioritize self-care activities like exercise, adequate sleep, and healthy eating.";
+                } else {
+                    resultMessage = "Based on your responses, your stress level appears to be **very high**.";
+                    suggestion = "It sounds like you're going through a very challenging time. Please consider seeking immediate professional help from a mental health expert. You are not alone, and support is available.";
+                }
+
+                displayMessage(resultMessage, 'bot');
+                await new Promise(resolve => setTimeout(resolve, 1500));
+                displayMessage(suggestion, 'bot');
+                await new Promise(resolve => setTimeout(resolve, 1500));
+                displayMessage("Would you like to restart the assessment? Type 'yes' to begin again.", 'bot');
+                userInput.disabled = false; // Re-enable input for restart
+                sendButton.disabled = false;
+            }
+        }
+
+        // Event listeners
+        sendButton.addEventListener('click', () => handleUserInput());
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                handleUserInput();
+            }
+        });
+
+        // Initial message from the bot
+        window.onload = () => {
+            // No Firebase initialization needed for this simple local chatbot
+            // if (firebaseConfig) {
+            //     const app = initializeApp(firebaseConfig);
+            //     const auth = getAuth(app);
+            //     const db = getFirestore(app);
+
+            //     // Authenticate anonymously or with custom token
+            //     if (initialAuthToken) {
+            //         signInWithCustomToken(auth, initialAuthToken)
+            //             .then(() => {
+            //                 console.log("Firebase authenticated successfully with custom token!");
+            //                 processChat(); // Start chat after auth
+            //             })
+            //             .catch((error) => {
+            //                 console.error("Firebase custom token auth failed:", error);
+            //                 signInAnonymously(auth)
+            //                     .then(() => {
+            //                         console.log("Firebase authenticated anonymously!");
+            //                         processChat(); // Start chat after anonymous auth
+            //                     })
+            //                     .catch((anonError) => {
+            //                         console.error("Firebase anonymous auth failed:", anonError);
+            //                         displayMessage("Error initializing chat. Please try again later.", 'bot');
+            //                     });
+            //             });
+            //     } else {
+            //         signInAnonymously(auth)
+            //             .then(() => {
+            //                 console.log("Firebase authenticated anonymously!");
+            //                 processChat(); // Start chat after anonymous auth
+            //             })
+            //             .catch((error) => {
+            //                 console.error("Firebase anonymous auth failed:", error);
+            //                 displayMessage("Error initializing chat. Please try again later.", 'bot');
+            //             });
+            //     }
+            // } else {
+            //     console.warn("Firebase config not provided. Running chatbot without Firebase.");
+            //     processChat(); // Start chat if no Firebase config
+            // }
+
+            // For this simple chatbot, we just start immediately.
+            processChat();
+        };
+
+        // Handle restart command
+        sendButton.addEventListener('click', () => {
+            if (userInput.value.toLowerCase().includes('yes')) {
+                currentQuestionIndex = 0;
+                stressScore = 0;
+                chatMessages.innerHTML = ''; // Clear chat
+                displayMessage("Okay, let's start the stress assessment again!", 'bot');
+                setTimeout(processChat, 1000);
+            } else {
+                handleUserInput();
+            }
+        });
+
+       // ... previous code ...
+
+userInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+        if (userInput.value.toLowerCase().includes('yes') && currentQuestionIndex >= questions.length) {
+            currentQuestionIndex = 0;
+            stressScore = 0;
+            chatMessages.innerHTML = ''; // Clear chat
+            displayMessage("Okay, let's start the stress assessment again!", 'bot');
+            setTimeout(processChat, 1000);
+        } else if (userInput.value.toLowerCase().includes('no') && currentQuestionIndex >= questions.length) {
+            displayMessage("Thank you for chatting! If you need assistance later, feel free to return.", 'bot');
+            // Show save button and redirect
+            const saveBtn = document.createElement('button');
+            saveBtn.textContent = "Save My Data & Continue";
+            saveBtn.className = "send-button";
+            saveBtn.onclick = function() {
+                saveChatToServer(chatHistory); // chatHistory should be your array of chat data
+                window.location.href = "/boot.html"; // Redirect to next page
+            };
+            chatMessages.appendChild(saveBtn);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            userInput.disabled = true;
+            sendButton.disabled = true;
+        } else {
+            handleUserInput();
+        }
+    }
+});
+             
+    
+
+function saveChatToServer(chatHistory) {
+    fetch('/save-chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chat: chatHistory })
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Chat saved:', data);
+    });
+}
+    </script>
+</body>
+</html>

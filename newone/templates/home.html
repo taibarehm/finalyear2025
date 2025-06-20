@@ -1,0 +1,146 @@
+<!-- filepath: c:\Users\asus\OneDrive\Desktop\projectfinal2025\newone\templates\home.html -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>SB Admin 2 - Dashboard</title>
+
+    <!-- Custom fonts for this template-->
+    <link href="vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+    <link
+        href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
+        rel="stylesheet">
+
+    <!-- Custom styles for this template-->
+    <link href="css/sb-admin-2.min.css" rel="stylesheet">
+</head>
+
+<body id="page-top">
+
+    <!-- Page Wrapper -->
+    <div id="wrapper">
+
+        <!-- Sidebar -->
+        <!-- ...existing sidebar code... -->
+        <!-- End of Sidebar -->
+
+        <!-- Content Wrapper -->
+        <div id="content-wrapper" class="d-flex flex-column">
+
+            <!-- Main Content -->
+            <div id="content">
+
+                <!-- Topbar -->
+                <!-- ...existing topbar code... -->
+                <!-- End of Topbar -->
+
+                <!-- Begin Page Content -->
+                <div class="container-fluid">
+
+                    <!-- Page Heading -->
+                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                        <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
+                        <a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i
+                                class="fas fa-download fa-sm text-white-50"></i> Generate Report</a>
+                    </div>
+
+                    <!-- Centered Stress Detection Button -->
+                    <div class="row justify-content-center">
+                        <div class="col-md-6 text-center">
+                            <form action="/stress-detect" method="post">
+                                <button type="submit" class="btn btn-danger btn-lg mt-4">Start Stress Detection (Face)</button>
+                            </form>
+                            {% if message %}
+                            <div class="alert alert-success mt-3">{{ message }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Add this form for physiological input -->
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <form action="/stress-detect" method="post" class="mt-4">
+            <div class="form-row">
+                <div class="form-group col">
+                    <input type="number" step="any" name="snoring_range" class="form-control" placeholder="Snoring Range" required>
+                </div>
+                <div class="form-group col">
+                    <input type="number" step="any" name="respiration_rate" class="form-control" placeholder="Respiration Rate" required>
+                </div>
+                <div class="form-group col">
+                    <input type="number" step="any" name="body_temperature" class="form-control" placeholder="Body Temperature" required>
+                </div>
+                <div class="form-group col">
+                    <input type="number" step="any" name="limb_movement" class="form-control" placeholder="Limb Movement" required>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group col">
+                    <input type="number" step="any" name="blood_oxygen" class="form-control" placeholder="Blood Oxygen" required>
+                </div>
+                <div class="form-group col">
+                    <input type="number" step="any" name="eye_movement" class="form-control" placeholder="Eye Movement" required>
+                </div>
+                <div class="form-group col">
+                    <input type="number" step="any" name="hours_of_sleep" class="form-control" placeholder="Hours of Sleep" required>
+                </div>
+                <div class="form-group col">
+                    <input type="number" step="any" name="heart_rate" class="form-control" placeholder="Heart Rate" required>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary btn-lg btn-block">Predict Stress Level</button>
+        </form>
+        {% if message %}
+        <div class="alert alert-success mt-3">{{ message }}</div>
+        {% endif %}
+    </div>
+</div><!-- ...rest of your dashboard content... -->
+
+                </div>
+                <!-- /.container-fluid -->
+
+            </div>
+            <!-- End of Main Content -->
+
+            <!-- Footer -->
+            <!-- ...existing footer code... -->
+            <!-- End of Footer -->
+
+        </div>
+        <!-- End of Content Wrapper -->
+
+    </div>
+    <!-- End of Page Wrapper -->
+
+    <!-- Scroll to Top Button-->
+    <!-- ...existing scroll to top code... -->
+
+    <!-- Logout Modal-->
+    <!-- ...existing logout modal code... -->
+
+    <!-- Bootstrap core JavaScript-->
+    <script src="vendor/jquery/jquery.min.js"></script>
+    <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Core plugin JavaScript-->
+    <script src="vendor/jquery-easing/jquery.easing.min.js"></script>
+
+    <!-- Custom scripts for all pages-->
+    <script src="js/sb-admin-2.min.js"></script>
+
+    <!-- Page level plugins -->
+    <script src="vendor/chart.js/Chart.min.js"></script>
+
+    <!-- Page level custom scripts -->
+    <script src="js/demo/chart-area-demo.js"></script>
+    <script src="js/demo/chart-pie-demo.js"></script>
+
+</body>
+
+</html>

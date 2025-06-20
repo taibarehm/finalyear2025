@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="Leading Tech Partner for Innovative Software Solutions and Digital Transformation">
+    <meta name="author" content="Your Company Name">
+
+    <title>Stress delection</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet" type="text/css">
+
+    <style>
+        body {
+    margin: 0;
+    font-family: 'Poppins', 'Roboto', Arial, sans-serif;
+    background-color: #0d111d; /* Dark background */
+    color: #ffffff;
+    background-image: url('https://img.freepik.com/premium-photo/deepfake-concept-background_78899-7279.jpg?w=996');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+}
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 50px;
+            background-color: rgba(0, 0, 0, 0.3); /* Slightly transparent background for the nav */
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            box-sizing: border-box; /* Include padding in width */
+            z-index: 1000;
+        }
+
+        .navbar-logo {
+            /* Replace with your actual logo */
+            font-size: 24px;
+            font-weight: 700;
+            color: #ffffff;
+            text-decoration: none;
+            /* Placeholder for an actual logo image if you have one */
+            width: 40px; /* Example size */
+            height: 40px; /* Example size */
+            background-color: #2e7bff; /* Example background for logo if it's an icon/shape */
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .navbar-nav {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            gap: 30px;
+        }
+
+        .nav-item .nav-link {
+            color: #ffffff;
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: 400;
+            padding: 5px 0;
+            position: relative;
+            transition: color 0.3s ease;
+        }
+
+        .nav-item .nav-link:hover {
+            color: #61dafb; /* Example hover color */
+        }
+
+        .nav-item .nav-link.dropdown::after {
+            content: '\f0d7'; /* Font Awesome caret-down icon */
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+
+        .navbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .lang-selector {
+            display: flex;
+            align-items: center;
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 8px 15px;
+            border-radius: 20px;
+            color: #ffffff;
+            font-size: 15px;
+            cursor: pointer;
+        }
+
+        .lang-selector i {
+            margin-right: 8px;
+        }
+
+        .lang-selector::after {
+            content: '\f0d7'; /* Font Awesome caret-down icon */
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            margin-left: 8px;
+        }
+
+        .contact-us-btn {
+            background-color: #2e7bff; /* Blue color from the image */
+            color: #ffffff;
+            padding: 10px 20px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background-color 0.3s ease;
+        }
+
+        .contact-us-btn:hover {
+            background-color: #1a5acf; /* Darker blue on hover */
+        }
+
+        .hero-section {
+            position: relative;
+            height: 100vh; /* Full viewport height */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            color: #ffffff;
+            overflow: hidden;
+            background: url('assets/bg.jpg') no-repeat center center/cover; /* Replace with your image path */
+        }
+
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.4); /* Dark overlay for better text readability */
+            z-index: 1;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            max-width: 800px;
+            padding: 20px;
+        }
+
+        .hero-title {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 25px;
+            line-height: 1.2;
+        }
+
+        .get-in-touch-btn {
+            background-color: #2e7bff; /* Blue color from the image */
+            color: #ffffff;
+            padding: 15px 30px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-size: 18px;
+            font-weight: 600;
+            transition: background-color 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        .get-in-touch-btn:hover {
+            background-color: #1a5acf; /* Darker blue on hover */
+        }
+
+        /* Basic responsiveness for smaller screens */
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                gap: 15px;
+                padding: 15px 20px;
+            }
+            .navbar-nav {
+                flex-direction: column;
+                gap: 10px;
+                text-align: center;
+            }
+            .navbar-actions {
+                flex-direction: column;
+                gap: 10px;
+            }
+            .hero-title {
+                font-size: 36px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero-title {
+                font-size: 28px;
+            }
+            .get-in-touch-btn {
+                padding: 12px 25px;
+                font-size: 16px;
+            }
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <div id="wrapper">
+
+        <nav class="navbar">
+            <a href="#" class="navbar-logo">
+                <i class="fas fa-infinity"></i> </a>
+            <ul class="navbar-nav">
+                <li class="nav-item"><a href="#" class="nav-link">Home</a></li>
+                <li class="nav-item"><a href="#" class="nav-link">Service</a></li>
+                <li class="nav-item"><a href="#" class="nav-link ">Solutions</a></li>
+                <li class="nav-item"><a href="#" class="nav-link">About us</a></li>
+            </ul>
+            <div class="navbar-actions">
+    
+                <a href="#" class="contact-us-btn">
+                    Contact Us <i class="fas fa-chevron-right"></i>
+                </a>
+            </div>
+        </nav>
+
+       <div class="hero-section">
+        <div class="hero-content">
+            <h1 class="hero-title">Navigate Stress with Confidence: Your Path to Well-being</h1>
+            <form action="boot.html">
+                <button type="submit" class="get-in-touch-btn">Ready to Test Your Stress?</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

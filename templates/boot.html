@@ -22,15 +22,15 @@
             width: 100%;
             max-width: 450px;
             background-color: #ffffff;
-            border-radius: 1.5rem; /* rounded-xl */
+            border-radius: 1.5rem;
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            min-height: 600px; /* Adjust as needed */
+            min-height: 600px;
         }
         .chat-header {
-            background-color:rgb(15, 7, 28); /* Deep purple */
+            background-color:rgb(15, 7, 28);
             color: white;
             padding: 1rem;
             text-align: center;
@@ -45,52 +45,52 @@
             display: flex;
             flex-direction: column;
             gap: 1rem;
-            background-color: #f8fafc; /* Light gray for chat background */
+            background-color: #f8fafc;
             max-height: 500px;
         }
         .message {
             max-width: 80%;
             padding: 0.75rem 1rem;
-            border-radius: 1.25rem; /* rounded-2xl */
+            border-radius: 1.25rem;
             line-height: 1.5;
         }
         .message.bot {
-            background-color: #ede9fe; /* Light violet */
-            color: #000000; /* Changed to black */
+            background-color: #ede9fe;
+            color: #000000;
             align-self: flex-start;
-            border-bottom-left-radius: 0.25rem; /* rounded-bl-sm */
+            border-bottom-left-radius: 0.25rem;
         }
         .message.user {
-            background-color:rgb(3, 2, 5); /* Medium purple */
+            background-color:rgb(3, 2, 5);
             color: white;
             align-self: flex-end;
-            border-bottom-right-radius: 0.25rem; /* rounded-br-sm */
+            border-bottom-right-radius: 0.25rem;
         }
         .chat-input-area {
             display: flex;
             padding: 1rem;
             background-color: #ffffff;
-            border-top: 1px solid #e2e8f0; /* Border for separation */
+            border-top: 1px solid #e2e8f0;
             border-bottom-left-radius: 1.5rem;
             border-bottom-right-radius: 1.5rem;
         }
         .chat-input {
             flex-grow: 1;
-            border: 1px solid #cbd5e1; /* Gray border */
-            border-radius: 9999px; /* rounded-full */
+            border: 1px solid #cbd5e1;
+            border-radius: 9999px;
             padding: 0.75rem 1.25rem;
             outline: none;
             margin-right: 0.75rem;
             transition: border-color 0.2s;
         }
         .chat-input:focus {
-            border-color:rgb(76, 67, 96); /* Focus color */
+            border-color:rgb(76, 67, 96);
         }
         .send-button {
-            background-color:rgb(11, 9, 15); /* Deep purple */
+            background-color:rgb(11, 9, 15);
             color: white;
             border: none;
-            border-radius: 9999px; /* rounded-full */
+            border-radius: 9999px;
             padding: 0.75rem 1.25rem;
             cursor: pointer;
             transition: background-color 0.2s;
@@ -100,28 +100,28 @@
             font-weight: 600;
         }
         .send-button:hover {
-            background-color:rgb(26, 24, 28); /* Darker purple on hover */
+            background-color:rgb(26, 24, 28);
         }
         .options-container {
             display: flex;
             flex-wrap: wrap;
             gap: 0.75rem;
             margin-top: 0.75rem;
-            justify-content: flex-start; /* Align options to start for bot */
+            justify-content: flex-start;
         }
         .option-button {
-            background-color: #c4b5fd; /* Lighter purple */
-            color: #5b21b6; /* Darker violet */
+            background-color: #c4b5fd;
+            color: #5b21b6;
             padding: 0.5rem 1rem;
-            border-radius: 1rem; /* rounded-xl */
+            border-radius: 1rem;
             cursor: pointer;
             transition: background-color 0.2s, transform 0.1s;
             border: 1px solid #a78bfa;
-            font-size: 0.875rem; /* text-sm */
+            font-size: 0.875rem;
             font-weight: 500;
         }
         .option-button:hover {
-            background-color: #a78bfa; /* Slightly darker on hover */
+            background-color: #a78bfa;
             color: white;
             transform: translateY(-2px);
         }
@@ -136,7 +136,7 @@
             Stress Bot
         </div>
         <div class="chat-messages" id="chat-messages">
-            </div>
+        </div>
         <div class="chat-input-area">
             <input type="text" id="user-input" class="chat-input" placeholder="Type your message...">
             <button id="send-button" class="send-button">Send</button>
@@ -144,25 +144,34 @@
     </div>
 
     <script type="module">
-        // Global variables for Firebase (MUST BE USED)
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-
-        // Firebase imports (if needed, currently not used for this simple chatbot)
-        // import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        // import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        // import { getFirestore, collection, addDoc, serverTimestamp, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
         const chatMessages = document.getElementById('chat-messages');
         const userInput = document.getElementById('user-input');
         const sendButton = document.getElementById('send-button');
 
         let currentQuestionIndex = 0;
         let stressScore = 0;
-        const chatHistory = []; // Array to store all messages for saving
+        const chatHistory = [];
+
+        // Define standard PSS options for reuse
+        const pssOptionsNormal = [ // These are for PSS negative items
+            { text: "Never", score: 0 },
+            { text: "Almost Never", score: 1 },
+            { text: "Sometimes", score: 2 },
+            { text: "Fairly Often", score: 3 },
+            { text: "Very Often", score: 4 }
+        ];
+
+        // Define PSS options with reversed scoring for positive items
+        const pssOptionsReversed = [ // These are for PSS positive items
+            { text: "Never", score: 4 },
+            { text: "Almost Never", score: 3 },
+            { text: "Sometimes", score: 2 },
+            { text: "Fairly Often", score: 1 },
+            { text: "Very Often", score: 0 }
+        ];
 
         const questions = [
+            // Original questions
             {
                 text: "Hello! I'm here to help you check in with your stress levels. How have you been feeling overall in the past week?",
                 options: [
@@ -222,17 +231,56 @@
                     { text: "Frequently, causing distress.", score: 3 },
                     { text: "Almost daily, very bothersome.", score: 4 }
                 ]
+            },
+            // PSS questions start here
+            {
+                text: "In the LAST MONTH, how often have you: Been upset because of something that happened unexpectedly?",
+                options: pssOptionsNormal 
+            },
+            {
+                text: "In the LAST MONTH, how often have you: Felt that you were unable to control important things in your life?",
+                options: pssOptionsNormal 
+            },
+            {
+                text: "In the LAST MONTH, how often have you: Felt nervous and 'stressed'?",
+                options: pssOptionsNormal 
+            },
+            {
+                text: "In the LAST MONTH, how often have you: Felt confident about your ability to handle your personal problems?",
+                options: pssOptionsReversed 
+            },
+            {
+                text: "In the LAST MONTH, how often have you: Felt that things were going your way?",
+                options: pssOptionsReversed 
+            },
+            {
+                text: "In the LAST MONTH, how often have you: Found that you could NOT cope with all the things you had to do?",
+                options: pssOptionsNormal 
+            },
+            {
+                text: "In the LAST MONTH, how often have you: Been able to control irritations in your life?",
+                options: pssOptionsReversed 
+            },
+            {
+                text: "In the LAST MONTH, how often have you: Felt that you were on top of things?",
+                options: pssOptionsReversed 
+            },
+            {
+                text: "In the LAST MONTH, how often have you: Been angered because of things that happened that were out of your control?",
+                options: pssOptionsNormal 
+            },
+            {
+                text: "In the LAST MONTH, how often have you: Felt difficulties were piling up so high that you could not overcome them?",
+                options: pssOptionsNormal 
             }
         ];
 
-        // Function to display a message in the chat
         function displayMessage(text, sender, options = []) {
             const messageDiv = document.createElement('div');
             messageDiv.classList.add('message', sender);
-            messageDiv.innerHTML = text; // Use innerHTML to allow for bolding or other simple formatting
+            messageDiv.innerHTML = text;
             chatMessages.appendChild(messageDiv);
 
-            // Add message to chat history
             chatHistory.push({ text: text, sender: sender, timestamp: new Date().toISOString() });
 
             if (options.length > 0) {
@@ -249,74 +297,65 @@
                 chatMessages.appendChild(optionsContainer);
             }
 
-            chatMessages.scrollTop = chatMessages.scrollHeight; // Scroll to bottom
+            chatMessages.scrollTop = chatMessages.scrollHeight;
         }
 
-        // Function to handle option button click
         function handleOptionClick(score, text) {
             stressScore += score;
-            displayMessage(text, 'user'); // Show the chosen option as user message
+            displayMessage(text, 'user');
 
-            // Disable all option buttons after one is clicked
             const optionButtons = chatMessages.querySelectorAll('.option-button');
             optionButtons.forEach(button => button.disabled = true);
 
-            // Remove options container
             const existingOptions = chatMessages.querySelectorAll('.options-container');
             existingOptions.forEach(container => container.remove());
 
-            // Proceed to the next question or result after a short delay
             setTimeout(() => {
                 currentQuestionIndex++;
                 processChat();
             }, 800);
         }
 
-        // Main chat logic for the stress assessment flow
         async function processChat() {
             if (currentQuestionIndex < questions.length) {
                 const currentQ = questions[currentQuestionIndex];
                 displayMessage(currentQ.text, 'bot', currentQ.options);
-                userInput.disabled = true; // Input disabled when options are present
+                userInput.disabled = true;
                 sendButton.disabled = true;
             } else {
-                // All questions asked, provide stress assessment
                 let resultMessage = "";
                 let suggestion = "";
 
-                if (stressScore <= 5) {
-                    resultMessage = "Based on your responses, your stress level seems to be **low**.";
-                    suggestion = "Keep up the good work! Continue practicing self-care and maintaining your healthy habits.";
-                } else if (stressScore <= 12) {
-                    resultMessage = "Based on your responses, your stress level appears to be **moderate**.";
-                    suggestion = "It seems you're experiencing some stress. Try incorporating relaxation techniques like deep breathing or mindfulness, and consider talking to a friend or family member.";
-                } else if (stressScore <= 20) {
-                    resultMessage = "Based on your responses, your stress level seems to be **high**.";
-                    suggestion = "You're experiencing significant stress. It might be helpful to reach out to a professional, such as a counselor or therapist, for support. Also, prioritize self-care activities like exercise, adequate sleep, and healthy eating.";
-                } else {
-                    resultMessage = "Based on your responses, your stress level appears to be **very high**.";
-                    suggestion = "It sounds like you're going through a very challenging time. Please consider seeking immediate professional help from a mental health expert. You are not alone, and support is available.";
+                // Max possible score: 6 (original questions) * 4 + 10 (PSS questions) * 4 = 24 + 40 = 64
+                if (stressScore <= 20) { // Approx 0-30%
+                    resultMessage = `Based on your responses, your total stress score is ${stressScore}, which indicates a <b>low</b> stress level.`;
+                    suggestion = "Keep up the good work! Continue practicing self-care and maintaining your healthy habits. If you feel stress building, remember your coping strategies.";
+                } else if (stressScore <= 45) { // Approx 31-70%
+                    resultMessage = `Based on your responses, your total stress score is ${stressScore}, which indicates a <b>moderate</b> stress level.`;
+                    suggestion = "It seems you're experiencing some stress. Try incorporating relaxation techniques like deep breathing or mindfulness, ensure you're getting enough sleep, and consider talking to a friend or family member. Small changes can make a big difference.";
+                } else { // stressScore > 45 (up to 64) // Approx 71-100%
+                    resultMessage = `Based on your responses, your total stress score is ${stressScore}, which indicates a <b>high</b> stress level.`;
+                    suggestion = "You're experiencing significant stress. It might be very helpful to reach out to a professional, such as a counselor or therapist, for support. Prioritize self-care activities like regular exercise, adequate sleep, healthy eating, and setting boundaries to manage demands. You don't have to go through this alone.";
                 }
 
                 displayMessage(resultMessage, 'bot');
-                await new Promise(resolve => setTimeout(resolve, 1500));
+                await new Promise(resolve => setTimeout(resolve, 2000));
                 displayMessage(suggestion, 'bot');
-                await new Promise(resolve => setTimeout(resolve, 1500));
+                await new Promise(resolve => setTimeout(resolve, 2500));
                 displayMessage("Would you like to restart the assessment? Type 'yes' to begin again, 'no' to finish, or ask me a general question about stress.", 'bot');
-                userInput.disabled = false; // Re-enable input for restart/exit OR general chat
+                userInput.disabled = false;
                 sendButton.disabled = false;
             }
         }
 
-        // NEW: Function to send general text messages to the AI backend
         async function sendGeneralMessageToAI(message) {
-            displayMessage(message, 'user'); // Display user's message immediately
-            userInput.value = ''; // Clear input
+            displayMessage(message, 'user');
+            userInput.value = '';
 
-            userInput.disabled = true; // Disable input while AI processes
+            userInput.disabled = true;
             sendButton.disabled = true;
 
-            await new Promise(resolve => setTimeout(resolve, 800)); // Simulate typing delay
+            await new Promise(resolve => setTimeout(resolve, 800));
 
             try {
                 const response = await fetch('/handle-chat-input', {
@@ -336,82 +375,67 @@
                 console.error('Error sending message to AI:', error);
                 displayMessage("I'm having trouble connecting right now. Please try again later.", 'bot');
             } finally {
-                userInput.disabled = false; // Re-enable input
+                userInput.disabled = false;
                 sendButton.disabled = false;
-                userInput.focus(); // Keep focus on input
+                userInput.focus();
             }
         }
 
-
-        // Event listener for Send button click
         sendButton.addEventListener('click', () => {
             const userResponse = userInput.value.trim();
-            if (userResponse === '') return; // Don't send empty messages
+            if (userResponse === '') return;
 
-            // Check if the assessment is complete
             if (currentQuestionIndex >= questions.length) {
                 const userResponseLower = userResponse.toLowerCase();
                 if (userResponseLower.includes('yes')) {
-                    // User wants to restart
                     currentQuestionIndex = 0;
                     stressScore = 0;
-                    chatMessages.innerHTML = ''; // Clear chat history from display
-                    // Optionally: chatHistory.length = 0; // Clear the JS array too if you restart completely
+                    chatMessages.innerHTML = '';
                     displayMessage("Okay, let's start the stress assessment again!", 'bot');
                     userInput.value = '';
-                    userInput.disabled = true; // Disabled until first question appears
+                    userInput.disabled = true;
                     sendButton.disabled = true;
                     setTimeout(processChat, 1000);
                 } else if (userResponseLower.includes('no')) {
-                    // User wants to finish
                     displayMessage("Thank you for chatting! If you need assistance later, feel free to return.", 'bot');
                     const saveBtn = document.createElement('button');
                     saveBtn.textContent = "Save My Data & Continue";
-                    saveBtn.className = "send-button"; // Reuse send-button style
-                    saveBtn.style.marginTop = "1rem"; // Add some spacing
+                    saveBtn.className = "send-button";
+                    saveBtn.style.marginTop = "1rem";
                     saveBtn.onclick = function() {
-                        // Send entire chat history and final stress score to backend
                         saveChatToServer({ chat: chatHistory, stressScore: stressScore });
                     };
                     chatMessages.appendChild(saveBtn);
                     chatMessages.scrollTop = chatMessages.scrollHeight;
-                    userInput.disabled = true; // Keep disabled after final interaction
+                    userInput.disabled = true;
                     sendButton.disabled = true;
                     userInput.value = '';
                 } else {
-                    // User typed something else after quiz, send to general AI handler
                     sendGeneralMessageToAI(userResponse);
                 }
             } else {
-                // Quiz is ongoing, direct text input is not expected.
-                // This message appears if somehow input is enabled and user types.
                 displayMessage("Please select an option above to continue with the assessment.", 'bot');
                 userInput.value = '';
             }
         });
 
-        // Event listener for Enter key press in input field
         userInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 const userResponse = userInput.value.trim();
                 if (userResponse === '') return;
 
-                // Check if the assessment is complete
                 if (currentQuestionIndex >= questions.length) {
                     const userResponseLower = userResponse.toLowerCase();
                     if (userResponseLower.includes('yes')) {
-                        // User wants to restart
                         currentQuestionIndex = 0;
                         stressScore = 0;
-                        chatMessages.innerHTML = ''; // Clear chat display
-                        // Optionally: chatHistory.length = 0; // Clear the JS array too if you restart completely
+                        chatMessages.innerHTML = '';
                         displayMessage("Okay, let's start the stress assessment again!", 'bot');
                         userInput.value = '';
                         userInput.disabled = true;
                         sendButton.disabled = true;
                         setTimeout(processChat, 1000);
                     } else if (userResponseLower.includes('no')) {
-                        // User wants to finish
                         displayMessage("Thank you for chatting! If you need assistance later, feel free to return.", 'bot');
                         const saveBtn = document.createElement('button');
                         saveBtn.textContent = "Save My Data & Continue";
@@ -426,23 +450,19 @@
                         sendButton.disabled = true;
                         userInput.value = '';
                     } else {
-                        // User typed something else after quiz, send to general AI handler
                         sendGeneralMessageToAI(userResponse);
                     }
                 } else {
-                    // Quiz is ongoing, direct text input is not expected.
                     displayMessage("Please select an option above to continue with the assessment.", 'bot');
                     userInput.value = '';
                 }
             }
         });
 
-        // Initial message from the bot on window load
         window.onload = () => {
-            processChat(); // This will display the first question with options
+            processChat();
         };
 
-        // Function to send chat data to the Flask backend (after completing assessment)
         function saveChatToServer(dataToSave) {
             console.log('Attempting to save chat data:', dataToSave);
             fetch('/save-chat', {
@@ -452,15 +472,13 @@
             })
             .then(response => {
                 if (!response.ok) {
-                    // Handle HTTP errors
                     return response.json().then(err => { throw new Error(err.message || 'Server error'); });
                 }
                 return response.json();
             })
             .then(data => {
                 console.log('Chat saved:', data);
-                // After successful save, redirect to /boot.html
-                window.location.href = "/boot.html";
+                window.location.href = "/questionnaire";
             })
             .catch(error => {
                 console.error('Error saving chat:', error);

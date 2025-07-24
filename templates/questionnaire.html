@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stress Detection Questionnaire</title>
+    <!-- Poppins Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #0d111d; /* Dark background */
+            color: #e0e6f1; /* Light text */
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .container {
+            background: rgba(30, 30, 40, 0.95); /* Slightly transparent dark background */
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            padding: 32px;
+            max-width: 550px; /* Increased max-width for better readability */
+            width: 100%;
+            box-sizing: border-box;
+        }
+        h2 {
+            text-align: center;
+            margin-bottom: 28px;
+            font-size: 2.25rem; /* text-4xl */
+            font-weight: 700; /* font-bold */
+            color: #fff;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            font-weight: 600;
+            display: block;
+            margin-bottom: 8px;
+            font-size: 1.1rem; /* text-lg */
+            color: #c0c7d1;
+        }
+        input[type="number"] {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 10px; /* Slightly more rounded */
+            border: 1px solid #3a3a4a; /* Darker border */
+            background: #1a1a2e; /* Even darker input background */
+            color: #e0e6f1;
+            font-size: 1rem;
+            box-sizing: border-box;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #2e7bff; /* Blue focus border */
+            box-shadow: 0 0 0 3px rgba(46, 123, 255, 0.3); /* Blue glow on focus */
+        }
+        .description {
+            font-size: 0.875rem; /* text-sm */
+            color: #a0a8b5;
+            margin-top: 4px;
+        }
+        button {
+            width: 100%;
+            padding: 14px 20px;
+            border-radius: 10px; /* Slightly more rounded */
+            background: linear-gradient(135deg, #2e7bff, #1a5acf); /* Gradient background */
+            color: #fff;
+            font-size: 1.25rem; /* text-xl */
+            font-weight: 700; /* font-bold */
+            border: none;
+            cursor: pointer;
+            margin-top: 24px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(46, 123, 255, 0.4);
+        }
+        button:hover {
+            background: linear-gradient(135deg, #1a5acf, #2e7bff); /* Reverse gradient on hover */
+            box-shadow: 0 6px 20px rgba(46, 123, 255, 0.6);
+            transform: translateY(-2px);
+        }
+        button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 10px rgba(46, 123, 255, 0.3);
+        }
+        button:disabled {
+            background: #4a5568;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+        .result-message {
+            margin-top: 28px;
+            padding: 20px;
+            background: #222;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 1.25rem;
+            color: #4CAF50; /* Green for success */
+            font-weight: 600;
+            display: none; /* Hidden by default */
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1000; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.7); /* Black w/ opacity */
+            backdrop-filter: blur(5px); /* Frosted glass effect */
+            -webkit-backdrop-filter: blur(5px); /* For Safari */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: #1a1a2e;
+            margin: auto;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            position: relative;
+            animation: fadeInScale 0.3s ease-out;
+        }
+
+        .modal-content h3 {
+            color: #2e7bff;
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+
+        .modal-content p {
+            font-size: 1.1rem;
+            line-height: 1.5;
+            margin-bottom: 25px;
+        }
+
+        .modal-close-button {
+            background: #2e7bff;
+            color: white;
+            padding: 10px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: background 0.3s ease, transform 0.2s ease;
+        }
+
+        .modal-close-button:hover {
+            background: #1a5acf;
+            transform: translateY(-1px);
+        }
+
+        @keyframes fadeInScale {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2 class="text-4xl font-bold">Stress Detection Questionnaire</h2>
+        <p class="text-center text-sm mb-6 text-gray-400">
+            Please provide the following physiological data for an estimated stress level assessment.
+            For best accuracy, use data from wearable health devices or your best recent estimates.
+        </p>
+        <form id="stressForm" action="/questionnaire-detect" method="post">
+            <div class="form-group">
+                <label for="snoring_range">Average Snoring Score</label>
+                <input type="number" step="any" name="snoring_range" id="snoring_range" required min="0" max="10">
+                <p class="description">On a scale of 0 (no snoring) to 10 (very loud snoring).</p>
+            </div>
+            <div class="form-group">
+                <label for="respiration_rate">Resting Respiration Rate</label>
+                <input type="number" step="any" name="respiration_rate" id="respiration_rate" required min="8" max="30">
+                <p class="description">Breaths per minute, ideally measured while at rest.</p>
+            </div>
+            <div class="form-group">
+                <label for="body_temperature">Average Body Temperature (°C)</label>
+                <input type="number" step="any" name="body_temperature" id="body_temperature" required min="35" max="40">
+                <p class="description">Your typical body temperature in Celsius.</p>
+            </div>
+            <div class="form-group">
+                <label for="limb_movement">Average Limb Movement Score During Sleep</label>
+                <input type="number" step="any" name="limb_movement" id="limb_movement" required min="0" max="10">
+                <p class="description">On a scale of 0 (very still) to 10 (very restless).</p>
+            </div>
+            <div class="form-group">
+                <label for="blood_oxygen">Average Blood Oxygen Saturation (%)</label>
+                <input type="number" step="any" name="blood_oxygen" id="blood_oxygen" required min="85" max="100">
+                <p class="description">Your typical SpO2 percentage.</p>
+            </div>
+            <div class="form-group">
+                <label for="eye_movement">Average Eye Movement Score During Sleep</label>
+                <input type="number" step="any" name="eye_movement" id="eye_movement" required min="0" max="10">
+                <p class="description">On a scale of 0 (minimal) to 10 (very active REM).</p>
+            </div>
+            <div class="form-group">
+                <label for="hours_of_sleep">Average Hours of Sleep per Night</label>
+                <input type="number" step="any" name="hours_of_sleep" id="hours_of_sleep" required min="0" max="12">
+                <p class="description">Your typical duration of sleep in hours.</p>
+            </div>
+            <div class="form-group">
+                <label for="heart_rate">Average Resting Heart Rate (bpm)</label>
+                <input type="number" step="any" name="heart_rate" id="heart_rate" required min="40" max="120">
+                <p class="description">Your typical heart beats per minute while at rest.</p>
+            </div>
+            <button type="submit" id="submitButton">Detect Stress Level</button>
+        </form>
+        <div id="resultMessage" class="result-message"></div>
+    </div>
+
+    <!-- Custom Modal for Messages -->
+    <div id="myModal" class="modal">
+        <div class="modal-content">
+            <h3 id="modalTitle"></h3>
+            <p id="modalMessage"></p>
+            <button class="modal-close-button" id="closeModal">Close</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('stressForm');
+            const submitButton = document.getElementById('submitButton');
+            const resultMessageDiv = document.getElementById('resultMessage');
+            const modal = document.getElementById('myModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalMessage = document.getElementById('modalMessage');
+            const closeModalButton = document.getElementById('closeModal');
+
+            // Function to show the custom modal
+            function showModal(title, message) {
+                modalTitle.textContent = title;
+                modalMessage.textContent = message;
+                modal.style.display = 'flex'; // Use flex to center
+            }
+
+            // Function to hide the custom modal
+            function hideModal() {
+                modal.style.display = 'none';
+            }
+
+            // Close modal when close button is clicked
+            closeModalButton.addEventListener('click', hideModal);
+
+            // Close modal when clicking outside the content
+            window.addEventListener('click', (event) => {
+                if (event.target == modal) {
+                    hideModal();
+                }
+            });
+
+            form.addEventListener('submit', async (event) => {
+                event.preventDefault(); // Prevent default form submission
+
+                submitButton.disabled = true;
+                submitButton.textContent = 'Detecting...';
+                resultMessageDiv.style.display = 'none'; // Hide previous result
+
+                const formData = new FormData(form);
+                const data = {};
+                formData.forEach((value, key) => {
+                    data[key] = parseFloat(value); // Parse all values as numbers
+                });
+
+                try {
+                     await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate network delay
+                    const mockResult = {
+                        message: `Stress Level Detected: ${Math.random() > 0.5 ? 'High' : 'Low'} (Score: ${Math.floor(Math.random() * 100)})`,
+                        status: 'success'
+                    };
+                    // --- End Mock API Response ---
+
+                    if (mockResult.status === 'success') {
+                        resultMessageDiv.textContent = mockResult.message;
+                        resultMessageDiv.style.display = 'block';
+                        resultMessageDiv.style.color = '#4CAF50'; // Green for success
+                        showModal('Success!', mockResult.message);
+                    } else {
+                        // Handle error from the mock API
+                        const errorMessage = mockResult.message || 'An unknown error occurred.';
+                        resultMessageDiv.textContent = `Error: ${errorMessage}`;
+                        resultMessageDiv.style.display = 'block';
+                        resultMessageDiv.style.color = '#f44336'; // Red for error
+                        showModal('Error', errorMessage);
+                    }
+
+                } catch (error) {
+                    console.error('Submission error:', error);
+                    resultMessageDiv.textContent = 'Failed to connect to the server. Please try again.';
+                    resultMessageDiv.style.display = 'block';
+                    resultMessageDiv.style.color = '#f44336'; // Red for error
+                    showModal('Network Error', 'Could not connect to the detection service. Please check your connection.');
+                } finally {
+                    submitButton.disabled = false;
+                    submitButton.textContent = 'Detect Stress Level';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

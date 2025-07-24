@@ -1,16 +1,52 @@
-# app.py
-from flask import Flask, render_template, request, jsonify, redirect, url_for
-import re
-import nltk
-from nltk.tokenize import word_tokenize
-from datetime import datetime # For timestamps in chat history
-
-# Ensure NLTK 'punkt' is downloaded (run `python -c "import nltk; nltk.download('punkt')"` once)
-# If you didn't download it globally, you might need to handle it here or ensure it's available.
-
+import os
+import numpy as np
+import base64
+from flask import Flask, render_template, request, jsonify
+from tensorflow.keras.models import load_model
+from tensorflow.keras.preprocessing.image import img_to_array
+from PIL import Image
+import io
+import cv2  
 app = Flask(__name__)
+model = load_model('model.h5')
+class_labels = ['nostress', 'stress']
 
-# --- Simple AI Logic (Rule-Based for Stress Assessment) ---
+@app.route('/', methods=['GET'])
+def index():
+    return render_template('index.html')
+@app.route('/face', methods=['GET', 'POST'])
+def face_detection():
+    prediction = None
+    if request.method == 'POST':
+        image_data = request.form.get('image_data')
+        if image_data:
+            # Decode base64 image
+            image_data = image_data.split(',')[1]
+            img_bytes = base64.b64decode(image_data)
+            img = Image.open(io.BytesIO(img_bytes)).convert('L')
+            img_np = np.array(img)
+
+            # Face detection using OpenCV
+            face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
+            faces = face_cascade.detectMultiScale(img_np, 1.3, 5)
+            if len(faces) > 0:
+                x, y, w, h = faces[0]
+                face_img = img_np[y:y+h, x:x+w]
+                face_img = cv2.resize(face_img, (48, 48))
+                print(f"Face region: x={x}, y={y}, w={w}, h={h}")
+                print("Face image shape:", face_img.shape)
+                img_array = img_to_array(face_img) / 255.0
+                img_array = np.expand_dims(img_array, axis=0)
+                pred = model.predict(img_array)
+                print("Prediction probabilities:", pred)
+                pred_class = class_labels[np.argmax(pred)]
+                print("Predicted class:", pred_class)
+                prediction = f"Prediction: {pred_class} (confidence: {np.max(pred):.2f})"
+            else:
+                prediction = "No face detected. Please try again."
+    return render_template('face.html', prediction=prediction)
+
+
 def get_ai_insight(stress_score):
     """Provides a basic AI-driven insight based on the stress score."""
     if stress_score <= 5:
@@ -22,11 +58,8 @@ def get_ai_insight(stress_score):
     else:
         return "Very high stress detected. Please prioritize your well-being and consider professional help."
 
-# --- New: Basic NLU for general chat ---
 def get_chatbot_response(user_message):
     user_message_lower = user_message.lower()
-
-    # Keyword-based responses
     if "hello" in user_message_lower or "hi" in user_message_lower:
         return "Hi there! How can I help you today regarding stress?"
     elif any(word in user_message_lower for word in ["how are you", "how r u"]):
@@ -49,64 +82,57 @@ def get_chatbot_response(user_message):
         return "Is there a specific aspect of stress or well-being you'd like to explore further? I can discuss symptoms, causes, or coping mechanisms."
     elif "quiz" in user_message_lower or "assessment" in user_message_lower or "start" in user_message_lower:
         return "If you'd like to start the stress assessment, please go to the main page or type 'yes' when prompted to restart."
-
-    # Fallback response
     return "I'm still learning! For now, I can help you with stress assessment via specific options. Or you can ask general questions about stress, feelings, or well-being. Try asking 'What helps with stress?' or 'I feel anxious'."
-
-
-# --- Routes ---
-
-@app.route('/')
-def index():
-    """Serves your main chatbot HTML page."""
-    return render_template('index.html')
 
 @app.route('/handle-chat-input', methods=['POST'])
 def handle_chat_input():
-    """
-    Handles general chat input from the frontend when the assessment is NOT active.
-    This is where the new NLU logic will be applied.
-    """
     user_message = request.json.get('message', '')
-    
     print(f"Received general user message: '{user_message}'")
-    
-    # Process the message using our basic NLU
     bot_response = get_chatbot_response(user_message)
-    
     return jsonify({'status': 'success', 'bot_message': bot_response})
 
-
+# --- Save Chat Route ---
 @app.route('/save-chat', methods=['POST'])
 def save_chat():
-    """
-    Handles the POST request from your frontend to save chat data after the assessment.
-    This is where your 'AI' processing for the collected assessment data occurs.
-    """
     data = request.json
     chat_history = data.get('chat', [])
     received_stress_score = data.get('stressScore')
-    
     print("Received chat data from frontend:")
-    # print(chat_history) # Uncomment to see full chat history in console
-    
     if received_stress_score is not None:
         print(f"Final Stress Score received: {received_stress_score}")
         ai_recommendation = get_ai_insight(received_stress_score)
         print(f"AI Recommendation (from assessment): {ai_recommendation}")
-        
-        # Here you would typically save `chat_history`, `received_stress_score`,
-        # and `ai_recommendation` to a database.
-        
+        # Here you would typically save chat_history, received_stress_score, ai_recommendation to a database.
         return jsonify({'status': 'success', 'message': 'Chat data processed', 'ai_insight': ai_recommendation})
     else:
         return jsonify({'status': 'error', 'message': 'Stress score not provided.'}), 400
 
-
+# --- Boot Page Route ---
 @app.route('/boot.html')
 def boot_page():
-    """Serves the boot.html page after the chat is saved."""
     return render_template('boot.html')
+@app.route('/questionnaire', methods=['GET'])
+def questionnaire():
+    return render_template('questionnaire.html')
+
+@app.route('/questionnaire-detect', methods=['POST'])
+def questionnaire_detect():
+    try:
+        features = [
+            float(request.form['snoring_range']),
+            float(request.form['respiration_rate']),
+            float(request.form['body_temperature']),
+            float(request.form['limb_movement']),
+            float(request.form['blood_oxygen']),
+            float(request.form['eye_movement']),
+            float(request.form['hours_of_sleep']),
+            float(request.form['heart_rate'])
+        ]
+        pred = model.predict([features])[0]
+        message = f"Predicted Stress Level: {int(pred)}"
+    except Exception as e:
+        message = f"Error: {e}"
+    return render_template('questionnaire.html', message=message)
 
 if __name__ == '__main__':
     app.run(debug=True)

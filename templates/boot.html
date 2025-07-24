@@ -46,6 +46,7 @@
             flex-direction: column;
             gap: 1rem;
             background-color: #f8fafc; /* Light gray for chat background */
+            max-height: 500px;
         }
         .message {
             max-width: 80%;
@@ -135,10 +136,10 @@
             Stress Bot
         </div>
         <div class="chat-messages" id="chat-messages">
-            <!-- Chat messages will be appended here -->
-        </div>
+            </div>
         <div class="chat-input-area">
-            +
+            <input type="text" id="user-input" class="chat-input" placeholder="Type your message...">
+            <button id="send-button" class="send-button">Send</button>
         </div>
     </div>
 
@@ -159,6 +160,8 @@
 
         let currentQuestionIndex = 0;
         let stressScore = 0;
+        const chatHistory = []; // Array to store all messages for saving
+
         const questions = [
             {
                 text: "Hello! I'm here to help you check in with your stress levels. How have you been feeling overall in the past week?",
@@ -229,6 +232,9 @@
             messageDiv.innerHTML = text; // Use innerHTML to allow for bolding or other simple formatting
             chatMessages.appendChild(messageDiv);
 
+            // Add message to chat history
+            chatHistory.push({ text: text, sender: sender, timestamp: new Date().toISOString() });
+
             if (options.length > 0) {
                 const optionsContainer = document.createElement('div');
                 optionsContainer.classList.add('options-container');
@@ -244,28 +250,6 @@
             }
 
             chatMessages.scrollTop = chatMessages.scrollHeight; // Scroll to bottom
-        }
-
-        // Function to handle user input (text or option click)
-        async function handleUserInput(messageText = null) {
-            let userResponse = messageText || userInput.value.trim();
-            if (userResponse === '' && !messageText) return; // Don't send empty messages
-
-            displayMessage(userResponse, 'user');
-            userInput.value = ''; // Clear input field
-
-            // Disable input and send button while bot is "typing"
-            userInput.disabled = true;
-            sendButton.disabled = true;
-
-            // Remove existing option buttons if any
-            const existingOptions = chatMessages.querySelectorAll('.options-container');
-            existingOptions.forEach(container => container.remove());
-
-            // Simulate typing delay
-            await new Promise(resolve => setTimeout(resolve, 800));
-
-            processChat(userResponse);
         }
 
         // Function to handle option button click
@@ -288,12 +272,12 @@
             }, 800);
         }
 
-        // Main chat logic
+        // Main chat logic for the stress assessment flow
         async function processChat() {
             if (currentQuestionIndex < questions.length) {
                 const currentQ = questions[currentQuestionIndex];
                 displayMessage(currentQ.text, 'bot', currentQ.options);
-                userInput.disabled = true; // Input is disabled for options
+                userInput.disabled = true; // Input disabled when options are present
                 sendButton.disabled = true;
             } else {
                 // All questions asked, provide stress assessment
@@ -318,123 +302,171 @@
                 await new Promise(resolve => setTimeout(resolve, 1500));
                 displayMessage(suggestion, 'bot');
                 await new Promise(resolve => setTimeout(resolve, 1500));
-                displayMessage("Would you like to restart the assessment? Type 'yes' to begin again.", 'bot');
-                userInput.disabled = false; // Re-enable input for restart
+                displayMessage("Would you like to restart the assessment? Type 'yes' to begin again, 'no' to finish, or ask me a general question about stress.", 'bot');
+                userInput.disabled = false; // Re-enable input for restart/exit OR general chat
                 sendButton.disabled = false;
             }
         }
 
-        // Event listeners
-        sendButton.addEventListener('click', () => handleUserInput());
+        // NEW: Function to send general text messages to the AI backend
+        async function sendGeneralMessageToAI(message) {
+            displayMessage(message, 'user'); // Display user's message immediately
+            userInput.value = ''; // Clear input
+
+            userInput.disabled = true; // Disable input while AI processes
+            sendButton.disabled = true;
+
+            await new Promise(resolve => setTimeout(resolve, 800)); // Simulate typing delay
+
+            try {
+                const response = await fetch('/handle-chat-input', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ message: message })
+                });
+                const data = await response.json();
+                if (data.status === 'success') {
+                    displayMessage(data.bot_message, 'bot');
+                } else {
+                    displayMessage("Oops! Something went wrong with my AI. Please try again.", 'bot');
+                }
+            } catch (error) {
+                console.error('Error sending message to AI:', error);
+                displayMessage("I'm having trouble connecting right now. Please try again later.", 'bot');
+            } finally {
+                userInput.disabled = false; // Re-enable input
+                sendButton.disabled = false;
+                userInput.focus(); // Keep focus on input
+            }
+        }
+
+
+        // Event listener for Send button click
+        sendButton.addEventListener('click', () => {
+            const userResponse = userInput.value.trim();
+            if (userResponse === '') return; // Don't send empty messages
+
+            // Check if the assessment is complete
+            if (currentQuestionIndex >= questions.length) {
+                const userResponseLower = userResponse.toLowerCase();
+                if (userResponseLower.includes('yes')) {
+                    // User wants to restart
+                    currentQuestionIndex = 0;
+                    stressScore = 0;
+                    chatMessages.innerHTML = ''; // Clear chat history from display
+                    // Optionally: chatHistory.length = 0; // Clear the JS array too if you restart completely
+                    displayMessage("Okay, let's start the stress assessment again!", 'bot');
+                    userInput.value = '';
+                    userInput.disabled = true; // Disabled until first question appears
+                    sendButton.disabled = true;
+                    setTimeout(processChat, 1000);
+                } else if (userResponseLower.includes('no')) {
+                    // User wants to finish
+                    displayMessage("Thank you for chatting! If you need assistance later, feel free to return.", 'bot');
+                    const saveBtn = document.createElement('button');
+                    saveBtn.textContent = "Save My Data & Continue";
+                    saveBtn.className = "send-button"; // Reuse send-button style
+                    saveBtn.style.marginTop = "1rem"; // Add some spacing
+                    saveBtn.onclick = function() {
+                        // Send entire chat history and final stress score to backend
+                        saveChatToServer({ chat: chatHistory, stressScore: stressScore });
+                    };
+                    chatMessages.appendChild(saveBtn);
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                    userInput.disabled = true; // Keep disabled after final interaction
+                    sendButton.disabled = true;
+                    userInput.value = '';
+                } else {
+                    // User typed something else after quiz, send to general AI handler
+                    sendGeneralMessageToAI(userResponse);
+                }
+            } else {
+                // Quiz is ongoing, direct text input is not expected.
+                // This message appears if somehow input is enabled and user types.
+                displayMessage("Please select an option above to continue with the assessment.", 'bot');
+                userInput.value = '';
+            }
+        });
+
+        // Event listener for Enter key press in input field
         userInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
-                handleUserInput();
+                const userResponse = userInput.value.trim();
+                if (userResponse === '') return;
+
+                // Check if the assessment is complete
+                if (currentQuestionIndex >= questions.length) {
+                    const userResponseLower = userResponse.toLowerCase();
+                    if (userResponseLower.includes('yes')) {
+                        // User wants to restart
+                        currentQuestionIndex = 0;
+                        stressScore = 0;
+                        chatMessages.innerHTML = ''; // Clear chat display
+                        // Optionally: chatHistory.length = 0; // Clear the JS array too if you restart completely
+                        displayMessage("Okay, let's start the stress assessment again!", 'bot');
+                        userInput.value = '';
+                        userInput.disabled = true;
+                        sendButton.disabled = true;
+                        setTimeout(processChat, 1000);
+                    } else if (userResponseLower.includes('no')) {
+                        // User wants to finish
+                        displayMessage("Thank you for chatting! If you need assistance later, feel free to return.", 'bot');
+                        const saveBtn = document.createElement('button');
+                        saveBtn.textContent = "Save My Data & Continue";
+                        saveBtn.className = "send-button";
+                        saveBtn.style.marginTop = "1rem";
+                        saveBtn.onclick = function() {
+                            saveChatToServer({ chat: chatHistory, stressScore: stressScore });
+                        };
+                        chatMessages.appendChild(saveBtn);
+                        chatMessages.scrollTop = chatMessages.scrollHeight;
+                        userInput.disabled = true;
+                        sendButton.disabled = true;
+                        userInput.value = '';
+                    } else {
+                        // User typed something else after quiz, send to general AI handler
+                        sendGeneralMessageToAI(userResponse);
+                    }
+                } else {
+                    // Quiz is ongoing, direct text input is not expected.
+                    displayMessage("Please select an option above to continue with the assessment.", 'bot');
+                    userInput.value = '';
+                }
             }
         });
 
-        // Initial message from the bot
+        // Initial message from the bot on window load
         window.onload = () => {
-            // No Firebase initialization needed for this simple local chatbot
-            // if (firebaseConfig) {
-            //     const app = initializeApp(firebaseConfig);
-            //     const auth = getAuth(app);
-            //     const db = getFirestore(app);
-
-            //     // Authenticate anonymously or with custom token
-            //     if (initialAuthToken) {
-            //         signInWithCustomToken(auth, initialAuthToken)
-            //             .then(() => {
-            //                 console.log("Firebase authenticated successfully with custom token!");
-            //                 processChat(); // Start chat after auth
-            //             })
-            //             .catch((error) => {
-            //                 console.error("Firebase custom token auth failed:", error);
-            //                 signInAnonymously(auth)
-            //                     .then(() => {
-            //                         console.log("Firebase authenticated anonymously!");
-            //                         processChat(); // Start chat after anonymous auth
-            //                     })
-            //                     .catch((anonError) => {
-            //                         console.error("Firebase anonymous auth failed:", anonError);
-            //                         displayMessage("Error initializing chat. Please try again later.", 'bot');
-            //                     });
-            //             });
-            //     } else {
-            //         signInAnonymously(auth)
-            //             .then(() => {
-            //                 console.log("Firebase authenticated anonymously!");
-            //                 processChat(); // Start chat after anonymous auth
-            //             })
-            //             .catch((error) => {
-            //                 console.error("Firebase anonymous auth failed:", error);
-            //                 displayMessage("Error initializing chat. Please try again later.", 'bot');
-            //             });
-            //     }
-            // } else {
-            //     console.warn("Firebase config not provided. Running chatbot without Firebase.");
-            //     processChat(); // Start chat if no Firebase config
-            // }
-
-            // For this simple chatbot, we just start immediately.
-            processChat();
+            processChat(); // This will display the first question with options
         };
 
-        // Handle restart command
-        sendButton.addEventListener('click', () => {
-            if (userInput.value.toLowerCase().includes('yes')) {
-                currentQuestionIndex = 0;
-                stressScore = 0;
-                chatMessages.innerHTML = ''; // Clear chat
-                displayMessage("Okay, let's start the stress assessment again!", 'bot');
-                setTimeout(processChat, 1000);
-            } else {
-                handleUserInput();
-            }
-        });
-
-       // ... previous code ...
-
-userInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-        if (userInput.value.toLowerCase().includes('yes') && currentQuestionIndex >= questions.length) {
-            currentQuestionIndex = 0;
-            stressScore = 0;
-            chatMessages.innerHTML = ''; // Clear chat
-            displayMessage("Okay, let's start the stress assessment again!", 'bot');
-            setTimeout(processChat, 1000);
-        } else if (userInput.value.toLowerCase().includes('no') && currentQuestionIndex >= questions.length) {
-            displayMessage("Thank you for chatting! If you need assistance later, feel free to return.", 'bot');
-            // Show save button and redirect
-            const saveBtn = document.createElement('button');
-            saveBtn.textContent = "Save My Data & Continue";
-            saveBtn.className = "send-button";
-            saveBtn.onclick = function() {
-                saveChatToServer(chatHistory); // chatHistory should be your array of chat data
-                window.location.href = "/boot.html"; // Redirect to next page
-            };
-            chatMessages.appendChild(saveBtn);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-            userInput.disabled = true;
-            sendButton.disabled = true;
-        } else {
-            handleUserInput();
+        // Function to send chat data to the Flask backend (after completing assessment)
+        function saveChatToServer(dataToSave) {
+            console.log('Attempting to save chat data:', dataToSave);
+            fetch('/save-chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(dataToSave)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    // Handle HTTP errors
+                    return response.json().then(err => { throw new Error(err.message || 'Server error'); });
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Chat saved:', data);
+                // After successful save, redirect to /boot.html
+                window.location.href = "/boot.html";
+            })
+            .catch(error => {
+                console.error('Error saving chat:', error);
+                alert("There was an error saving your data: " + error.message + ". Please try again.");
+            });
         }
-    }
-});
-             
-    
-
-function saveChatToServer(chatHistory) {
-    fetch('/save-chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ chat: chatHistory })
-    })
-    .then(response => response.json())
-    .then(data => {
-        console.log('Chat saved:', data);
-    });
-}
     </script>
 </body>
 </html>

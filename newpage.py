@@ -5,17 +5,27 @@ from flask import Flask, render_template, request, jsonify
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing.image import img_to_array
 from PIL import Image
+from flask import Flask, render_template, request, jsonify 
 import io
+import pickle
 import cv2  
 app = Flask(__name__)
 model = load_model('model.h5')
 class_labels = ['nostress', 'stress']
+# Load the trained model
+try:
+    with open('catboost_stress_model.pkl', 'rb') as f:
+        model2 = pickle.load(f)
+except Exception as e:
+    print(f"Error loading the model: {e}")
+    model2 = None # Handle case where model loading fails
 
 @app.route('/', methods=['GET'])
 def index():
     return render_template('index.html')
 @app.route('/face', methods=['GET', 'POST'])
 def face_detection():
+    print("into facedetection")
     prediction = None
     if request.method == 'POST':
         image_data = request.form.get('image_data')
@@ -107,32 +117,65 @@ def save_chat():
     else:
         return jsonify({'status': 'error', 'message': 'Stress score not provided.'}), 400
 
-# --- Boot Page Route ---
+
 @app.route('/boot.html')
 def boot_page():
     return render_template('boot.html')
-@app.route('/questionnaire', methods=['GET'])
-def questionnaire():
-    return render_template('questionnaire.html')
-
+@app.route('/questionnaire', methods=['GET'])  
+def questionnaire_page(): 
+    
+    return render_template('questionnaire.html', message=None)
 @app.route('/questionnaire-detect', methods=['POST'])
 def questionnaire_detect():
+    """
+    Handles the submission of the questionnaire, processes the input,
+    and makes a prediction using the loaded CatBoost model.
+    """
+    if model2 is None:
+        return jsonify({'success': False, 'message': "Error: Stress detection model not loaded. Please check server logs."}), 500
+
     try:
-        features = [
-            float(request.form['snoring_range']),
-            float(request.form['respiration_rate']),
-            float(request.form['body_temperature']),
-            float(request.form['limb_movement']),
-            float(request.form['blood_oxygen']),
-            float(request.form['eye_movement']),
-            float(request.form['hours_of_sleep']),
-            float(request.form['heart_rate'])
+        feature_names = [
+            'snoring_range',
+            'respiration_rate',
+            'body_temperature',
+            'limb_movement',
+            'blood_oxygen',
+            'eye_movement',
+            'hours_of_sleep',
+            'heart_rate'
         ]
-        pred = model.predict([features])[0]
-        message = f"Predicted Stress Level: {int(pred)}"
+
+        features = []
+        for feature_name in feature_names:
+            if feature_name not in request.form:
+                raise KeyError(f"Missing form data for '{feature_name}'. Please ensure all fields are filled.")
+            features.append(float(request.form[feature_name]))
+        print(f"Extracted features: {features}")
+        
+        pred = model2.predict([features])[0] 
+        stress_level = int(pred)
+        message = f"Predicted Stress Level: {stress_level}"
+        print(f"Prediction successful: {message}")
+        
+        # Return a JSON response for success
+        return jsonify({'success': True, 'message': message})
+
+    except KeyError as e:
+        message = f"Error: Missing form data. {e}. Please ensure all fields are filled."
+        print(f"KeyError: {message}")
+        # Return a JSON response for an error
+        return jsonify({'success': False, 'message': message}), 400
+    except ValueError as e:
+        message = f"Error: Invalid input data. Please enter numerical values. Details: {e}"
+        print(f"ValueError: {message}")
+        # Return a JSON response for an error
+        return jsonify({'success': False, 'message': message}), 400
     except Exception as e:
-        message = f"Error: {e}"
-    return render_template('questionnaire.html', message=message)
+        message = f"An unexpected error occurred during prediction: {e}"
+        print(f"General Error: {message}")
+        # Return a JSON response for a general error
+        return jsonify({'success': False, 'message': message}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)

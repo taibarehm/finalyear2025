@@ -1,319 +1,159 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="Leading Tech Partner for Innovative Software Solutions and Digital Transformation">
-    <meta name="author" content="Your Company Name">
-
-    <title>Stress Detection</title>
-
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet" type="text/css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Face Detection</title>
     <style>
         body {
-            margin: 0;
-            font-family: 'Poppins', 'Roboto', Arial, sans-serif;
-            background-color: #0d111d;
-            color: #ffffff;
-            background-image: url("{{ url_for('static', filename='image/background.png') }}");
-            background-size: cover;
-            background-repeat: no-repeat;
-            background-attachment: fixed;
-        }
-
-        .navbar {
+            font-family: Arial, sans-serif;
             display: flex;
-            justify-content: space-between;
+            flex-direction: column;
             align-items: center;
-            padding: 15px 50px;
-            background-color: rgba(0, 0, 0, 0.3);
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            box-sizing: border-box;
-            z-index: 1000;
-        }
-
-        .navbar-logo {
-            font-size: 24px;
-            font-weight: 700;
-            color: #ffffff;
-            text-decoration: none;
-            width: 40px;
-            height: 40px;
-            background-color: #2e7bff;
-            border-radius: 50%;
-            display: flex;
             justify-content: center;
-            align-items: center;
-        }
-
-        .navbar-nav {
-            list-style: none;
+            min-height: 100vh;
             margin: 0;
-            padding: 0;
-            display: flex;
-            gap: 30px;
+            background-color: #f4f4f4;
         }
-
-        .nav-item .nav-link {
-            color: #ffffff;
-            text-decoration: none;
-            font-size: 16px;
-            font-weight: 400;
-            padding: 5px 0;
-            position: relative;
-            transition: color 0.3s ease;
+        .container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
         }
-
-        .nav-item .nav-link:hover {
-            color: #61dafb;
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
         }
-
-        .nav-item .nav-link.dropdown::after {
-            content: '\f0d7';
-            font-family: 'Font Awesome 6 Free';
-            font-weight: 900;
-            margin-left: 8px;
-            vertical-align: middle;
+        video {
+            width: 640px; /* Standard webcam resolution */
+            height: 480px;
+            background-color: #000;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-bottom: 20px;
         }
-
-        .navbar-actions {
-            display: flex;
-            align-items: center;
-            gap: 20px;
+        canvas {
+            display: none; /* Hidden, used for capturing frames */
         }
-
-        .contact-us-btn {
-            background-color: #2e7bff;
-            color: #ffffff;
+        button {
             padding: 10px 20px;
-            border-radius: 25px;
-            text-decoration: none;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: background-color 0.3s ease;
-        }
-
-        .contact-us-btn:hover {
-            background-color: #1a5acf;
-        }
-
-        /* Webcam Section */
-        .webcam-container {
-            margin: 120px auto 40px auto;
-            max-width: 420px;
-            background: rgba(20,24,40,0.95);
-            border-radius: 20px;
-            box-shadow: 0 8px 32px 0 rgba(31,38,135,0.37);
-            text-align: center;
-            padding: 35px 20px;
-        }
-        .webcam-container h2 {
-            font-weight:700;
-            margin-bottom:18px;
-            font-size:1.5rem;
-        }
-        .webcam-container video, .webcam-container canvas {
-            border-radius:12px;
-            margin-bottom:12px;
-            box-shadow:0 2px 8px rgba(46,123,255,0.2);
-        }
-        #snap {
-            background:#2e7bff;
-            color:#fff;
-            border:none;
-            border-radius:25px;
-            padding:10px 25px;
-            font-size:1rem;
-            font-weight:600;
-            cursor:pointer;
-            margin-bottom:12px;
-            transition: background 0.2s;
-        }
-        #snap:hover {
-            background: #1a5acf;
-        }
-        #upload-form input[type="submit"] {
-            margin-top:10px;
-            background:#2e7bff;
-            color:#fff;
-            border:none;
-            border-radius:25px;
-            padding:10px 25px;
-            font-size:1rem;
-            font-weight:600;
-            cursor:pointer;
-        }
-        .webcam-result {
-            margin-top:18px;
-            font-size:1.1rem;
-            font-weight:600;
-            color:#61dafb;
-        }
-
-        .hero-section {
-            position: relative;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            color: #ffffff;
-            overflow: hidden;
-            background: url('assets/bg.jpg') no-repeat center center/cover;
-        }
-
-        .hero-section::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.4);
-            z-index: 1;
-        }
-
-        .hero-content {
-            position: relative;
-            z-index: 2;
-            max-width: 800px;
-            padding: 20px;
-        }
-
-        .hero-title {
-            font-size: 48px;
-            font-weight: 700;
-            margin-bottom: 25px;
-            line-height: 1.2;
-        }
-
-        .get-in-touch-btn {
-            background-color: #2e7bff;
-            color: #ffffff;
-            padding: 15px 30px;
-            border-radius: 30px;
-            text-decoration: none;
-            font-size: 18px;
-            font-weight: 600;
-            transition: background-color 0.3s ease;
+            font-size: 16px;
+            color: #fff;
+            background-color: #007bff;
             border: none;
+            border-radius: 5px;
             cursor: pointer;
+            transition: background-color 0.3s ease;
         }
-
-        .get-in-touch-btn:hover {
-            background-color: #1a5acf;
+        button:hover {
+            background-color: #0056b3;
         }
-
-        @media (max-width: 768px) {
-            .navbar {
-                flex-direction: column;
-                gap: 15px;
-                padding: 15px 20px;
-            }
-            .navbar-nav {
-                flex-direction: column;
-                gap: 10px;
-                text-align: center;
-            }
-            .navbar-actions {
-                flex-direction: column;
-                gap: 10px;
-            }
-            .hero-title {
-                font-size: 36px;
-            }
-            .webcam-container {
-                margin: 100px 10px 30px 10px;
-                padding: 25px 5px;
-            }
+        #predictionResult {
+            margin-top: 20px;
+            font-size: 1.1em;
+            color: #333;
+            font-weight: bold;
         }
-
-        @media (max-width: 480px) {
-            .hero-title {
-                font-size: 28px;
-            }
-            .get-in-touch-btn {
-                padding: 12px 25px;
-                font-size: 16px;
-            }
-            .webcam-container {
-                margin: 80px 2px 20px 2px;
-                padding: 15px 2px;
-            }
+        .error {
+            color: red;
+            font-weight: bold;
+            margin-top: 10px;
         }
     </style>
 </head>
-
 <body>
-
-    <div id="wrapper">
-
-        <nav class="navbar">
-            <a href="#" class="navbar-logo">
-                <i class="fas fa-infinity"></i> </a>
-            <ul class="navbar-nav">
-                <li class="nav-item"><a href="#" class="nav-link">Home</a></li>
-            </ul>
-            
-        </nav>
-
-        <!-- Webcam Capture Section -->
-        <div class="webcam-container">
-            <h2>Try Face Stress Detection</h2>
-            <video id="video" width="320" height="240" autoplay></video>
-            <br>
-            <button id="snap" type="button">Capture</button>
-            <canvas id="canvas" width="320" height="240" style="display:none;"></canvas>
-            <form id="upload-form" method="post" enctype="multipart/form-data" action="/">
-                <input type="hidden" name="image_data" id="image_data">
-                <input type="submit" value="Detect Stress">
-            </form>
+    <div class="container">
+        <h1>Live Face Detection</h1>
+        <video id="videoElement" autoplay playsinline></video>
+        <button id="captureButton">Capture & Predict</button>
+        <canvas id="canvasElement"></canvas>
+        <div id="predictionResult">
             {% if prediction %}
-                <div class="webcam-result">{{ prediction }}</div>
+                {{ prediction }}
+            {% else %}
+                Click "Capture & Predict" to analyze.
             {% endif %}
         </div>
-
-        
+        <div id="errorMessage" class="error"></div>
     </div>
-    <script>
-        var video = document.getElementById('video');
-        var canvas = document.getElementById('canvas');
-        var snap = document.getElementById('snap');
-        var image_data = document.getElementById('image_data');
-        var uploadForm = document.getElementById('upload-form');
 
-        // Start webcam stream
-        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-            navigator.mediaDevices.getUserMedia({ video: true }).then(function(stream) {
+    <script>
+        const video = document.getElementById('videoElement');
+        const canvas = document.getElementById('canvasElement');
+        const context = canvas.getContext('2d');
+        const captureButton = document.getElementById('captureButton');
+        const predictionResult = document.getElementById('predictionResult');
+        const errorMessage = document.getElementById('errorMessage');
+
+        // Request access to the webcam
+        async function startWebcam() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
                 video.srcObject = stream;
-                video.play();
-            });
+                video.onloadedmetadata = () => {
+                    // Set canvas dimensions to match video
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    console.log('Webcam started:', video.videoWidth, 'x', video.videoHeight);
+                };
+            } catch (err) {
+                console.error('Error accessing webcam:', err);
+                errorMessage.textContent = 'Could not start webcam. Please ensure camera access is allowed.';
+            }
         }
 
-        // Capture image on button click
-        snap.addEventListener("click", function(e) {
-            e.preventDefault();
-            canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
-            var dataURL = canvas.toDataURL('image/png');
-            image_data.value = dataURL;
-            canvas.style.display = 'block'; // Show the captured image (optional)
-        });
+        // Capture image and send to server
+        captureButton.addEventListener('click', () => {
+            if (video.srcObject) {
+                errorMessage.textContent = ''; // Clear previous errors
 
-        // Prevent form submission if no image is captured
-        uploadForm.addEventListener("submit", function(e) {
-            if (!image_data.value) {
-                alert("Please capture an image first!");
-                e.preventDefault();
+                // Draw the current video frame onto the canvas
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                // Get image data as base64 string
+                const imageData = canvas.toDataURL('image/jpeg', 0.9); // Use JPEG for smaller size
+
+                // Send data to Flask backend
+                sendImageToServer(imageData);
+            } else {
+                errorMessage.textContent = 'Webcam not active. Please allow camera access.';
             }
         });
+
+        async function sendImageToServer(imageData) {
+            predictionResult.textContent = 'Processing...'; // Show loading state
+            try {
+                const response = await fetch('/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `image_data=${encodeURIComponent(imageData)}`
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const htmlResponse = await response.text();
+             
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(htmlResponse, 'text/html');
+                const newPrediction = doc.getElementById('predictionResult').innerText.trim();
+                
+                predictionResult.textContent = newPrediction;
+
+            } catch (error) {
+                console.error('Error sending image:', error);
+                predictionResult.textContent = ''; // Clear processing message
+                errorMessage.textContent = 'Error during prediction: ' + error.message;
+            }
+        }
+
+        // Start webcam when the page loads
+        window.onload = startWebcam;
     </script>
 </body>
 </html>

@@ -1,5 +1,4 @@
 Flask
-tensorflow==2.13.0
 numpy
 Pillow
 opencv-python
@@ -17,3 +16,13 @@ flask-cors
 ipywidgets
 nbconvert
 pyyaml
+tensorflow==2.20.0 
+pandas
+pytest
+pytest-flask
+pytest-c0v
+numpy
+scikit-learn
+scipy
+pytest-html
+pytest-mock

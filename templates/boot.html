@@ -5,11 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stress Detection Chatbot</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f0f2f5;
+            font-family: 'Poppins', sans-serif; /* Changed font */
+            background-color: #0d111d; /* Dark background */
+            color: #e0e6f1; /* Light text */
             display: flex;
             justify-content: center;
             align-items: center;
@@ -21,22 +22,23 @@
         .chat-container {
             width: 100%;
             max-width: 450px;
-            background-color: #ffffff;
-            border-radius: 1.5rem;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            background: rgba(30, 30, 40, 0.95); /* Slightly transparent dark background */
+            border-radius: 16px; /* Increased border-radius */
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); /* Enhanced shadow */
             display: flex;
             flex-direction: column;
             overflow: hidden;
             min-height: 600px;
         }
         .chat-header {
-            background-color:rgb(15, 7, 28);
+            background-color: #2e7bff; /* Changed to blue */
             color: white;
             padding: 1rem;
             text-align: center;
-            font-weight: 600;
-            border-top-left-radius: 1.5rem;
-            border-top-right-radius: 1.5rem;
+            font-weight: 700; /* Made bolder */
+            font-size: 1.5rem; /* Slightly larger */
+            border-top-left-radius: 16px; /* Adjusted to match container */
+            border-top-right-radius: 16px; /* Adjusted to match container */
         }
         .chat-messages {
             flex-grow: 1;
@@ -45,7 +47,7 @@
             display: flex;
             flex-direction: column;
             gap: 1rem;
-            background-color: #f8fafc;
+            background-color: #1a1a2e; /* Darker background for messages */
             max-height: 500px;
         }
         .message {
@@ -55,13 +57,13 @@
             line-height: 1.5;
         }
         .message.bot {
-            background-color: #ede9fe;
-            color: #000000;
+            background-color: #3a3a4a; /* Dark grey for bot messages */
+            color: #e0e6f1; /* Light text for bot */
             align-self: flex-start;
             border-bottom-left-radius: 0.25rem;
         }
         .message.user {
-            background-color:rgb(3, 2, 5);
+            background-color: #2e7bff; /* Blue for user messages */
             color: white;
             align-self: flex-end;
             border-bottom-right-radius: 0.25rem;
@@ -69,38 +71,48 @@
         .chat-input-area {
             display: flex;
             padding: 1rem;
-            background-color: #ffffff;
-            border-top: 1px solid #e2e8f0;
-            border-bottom-left-radius: 1.5rem;
-            border-bottom-right-radius: 1.5rem;
+            background-color: #1a1a2e; /* Darker input area background */
+            border-top: 1px solid #3a3a4a; /* Darker border */
+            border-bottom-left-radius: 16px;
+            border-bottom-right-radius: 16px;
         }
         .chat-input {
             flex-grow: 1;
-            border: 1px solid #cbd5e1;
+            border: 1px solid #3a3a4a; /* Darker border */
             border-radius: 9999px;
             padding: 0.75rem 1.25rem;
             outline: none;
             margin-right: 0.75rem;
-            transition: border-color 0.2s;
+            background: #0d111d; /* Even darker input background */
+            color: #e0e6f1;
+            transition: border-color 0.3s, box-shadow 0.3s;
         }
         .chat-input:focus {
-            border-color:rgb(76, 67, 96);
+            border-color: #2e7bff; /* Blue focus border */
+            box-shadow: 0 0 0 3px rgba(46, 123, 255, 0.3); /* Blue glow on focus */
         }
         .send-button {
-            background-color:rgb(11, 9, 15);
+            background: linear-gradient(135deg, #2e7bff, #1a5acf); /* Gradient background */
             color: white;
             border: none;
             border-radius: 9999px;
             padding: 0.75rem 1.25rem;
             cursor: pointer;
-            transition: background-color 0.2s;
+            transition: all 0.3s ease;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: 600;
+            font-weight: 700;
+            box-shadow: 0 4px 15px rgba(46, 123, 255, 0.4);
         }
         .send-button:hover {
-            background-color:rgb(26, 24, 28);
+            background: linear-gradient(135deg, #1a5acf, #2e7bff); /* Reverse gradient on hover */
+            box-shadow: 0 6px 20px rgba(46, 123, 255, 0.6);
+            transform: translateY(-2px);
+        }
+        .send-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 10px rgba(46, 123, 255, 0.3);
         }
         .options-container {
             display: flex;
@@ -110,20 +122,21 @@
             justify-content: flex-start;
         }
         .option-button {
-            background-color: #c4b5fd;
-            color: #5b21b6;
+            background: #28283d; /* Darker background for options */
+            color: #e0e6f1;
             padding: 0.5rem 1rem;
             border-radius: 1rem;
             cursor: pointer;
-            transition: background-color 0.2s, transform 0.1s;
-            border: 1px solid #a78bfa;
+            transition: background-color 0.2s, transform 0.1s, box-shadow 0.2s;
+            border: 1px solid #4a4a6e; /* Darker border */
             font-size: 0.875rem;
             font-weight: 500;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
         .option-button:hover {
-            background-color: #a78bfa;
-            color: white;
+            background-color: #3a3a4a; /* Slightly lighter on hover */
             transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
         }
         .hidden {
             display: none;
@@ -171,7 +184,7 @@
         ];
 
         const questions = [
-            // Original questions
+            // Original questions question 1
             {
                 text: "Hello! I'm here to help you check in with your stress levels. How have you been feeling overall in the past week?",
                 options: [
@@ -323,18 +336,21 @@
                 userInput.disabled = true;
                 sendButton.disabled = true;
             } else {
+                // Calculate the percentage
+                const maxScore = 64; // Total questions (16) * max score per question (4)
+                const stressPercentage = Math.round((stressScore / maxScore) * 100);
+
                 let resultMessage = "";
                 let suggestion = "";
 
-                // Max possible score: 6 (original questions) * 4 + 10 (PSS questions) * 4 = 24 + 40 = 64
-                if (stressScore <= 20) { // Approx 0-30%
-                    resultMessage = `Based on your responses, your total stress score is ${stressScore}, which indicates a <b>low</b> stress level.`;
+                if (stressPercentage <= 30) {
+                    resultMessage = `Based on your responses, your stress score is ${stressScore} out of ${maxScore}, which is a <b>${stressPercentage}%</b> stress level. This indicates a <b>low</b> stress level.`;
                     suggestion = "Keep up the good work! Continue practicing self-care and maintaining your healthy habits. If you feel stress building, remember your coping strategies.";
-                } else if (stressScore <= 45) { // Approx 31-70%
-                    resultMessage = `Based on your responses, your total stress score is ${stressScore}, which indicates a <b>moderate</b> stress level.`;
+                } else if (stressPercentage <= 70) {
+                    resultMessage = `Based on your responses, your stress score is ${stressScore} out of ${maxScore}, which is a <b>${stressPercentage}%</b> stress level. This indicates a <b>moderate</b> stress level.`;
                     suggestion = "It seems you're experiencing some stress. Try incorporating relaxation techniques like deep breathing or mindfulness, ensure you're getting enough sleep, and consider talking to a friend or family member. Small changes can make a big difference.";
-                } else { // stressScore > 45 (up to 64) // Approx 71-100%
-                    resultMessage = `Based on your responses, your total stress score is ${stressScore}, which indicates a <b>high</b> stress level.`;
+                } else {
+                    resultMessage = `Based on your responses, your stress score is ${stressScore} out of ${maxScore}, which is a <b>${stressPercentage}%</b> stress level. This indicates a <b>high</b> stress level.`;
                     suggestion = "You're experiencing significant stress. It might be very helpful to reach out to a professional, such as a counselor or therapist, for support. Prioritize self-care activities like regular exercise, adequate sleep, healthy eating, and setting boundaries to manage demands. You don't have to go through this alone.";
                 }
 
@@ -358,19 +374,28 @@
             await new Promise(resolve => setTimeout(resolve, 800));
 
             try {
-                const response = await fetch('/handle-chat-input', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ message: message })
-                });
-                const data = await response.json();
-                if (data.status === 'success') {
-                    displayMessage(data.bot_message, 'bot');
-                } else {
-                    displayMessage("Oops! Something went wrong with my AI. Please try again.", 'bot');
-                }
+                // This section would require a backend endpoint to process the chat input.
+                // Since this is a standalone HTML file, this will not work as-is.
+                // I've commented out the fetch call to prevent errors.
+                // You would need to set up a server-side component (e.g., Node.js with Express)
+                // to handle this request.
+                //
+                // const response = await fetch('/handle-chat-input', {
+                //     method: 'POST',
+                //     headers: {
+                //         'Content-Type': 'application/json'
+                //     },
+                //     body: JSON.stringify({ message: message })
+                // });
+                // const data = await response.json();
+                // if (data.status === 'success') {
+                //     displayMessage(data.bot_message, 'bot');
+                // } else {
+                //     displayMessage("Oops! Something went wrong with my AI. Please try again.", 'bot');
+                // }
+
+                displayMessage("I'm sorry, my general chat capabilities are currently disabled in this demo. Please try restarting the assessment or ending the chat.", 'bot');
+
             } catch (error) {
                 console.error('Error sending message to AI:', error);
                 displayMessage("I'm having trouble connecting right now. Please try again later.", 'bot');
@@ -400,7 +425,7 @@
                     displayMessage("Thank you for chatting! If you need assistance later, feel free to return.", 'bot');
                     const saveBtn = document.createElement('button');
                     saveBtn.textContent = "Save My Data & Continue";
-                    saveBtn.className = "send-button";
+                    saveBtn.className = "send-button"; /* Use existing send-button style */
                     saveBtn.style.marginTop = "1rem";
                     saveBtn.onclick = function() {
                         saveChatToServer({ chat: chatHistory, stressScore: stressScore });
@@ -439,7 +464,7 @@
                         displayMessage("Thank you for chatting! If you need assistance later, feel free to return.", 'bot');
                         const saveBtn = document.createElement('button');
                         saveBtn.textContent = "Save My Data & Continue";
-                        saveBtn.className = "send-button";
+                        saveBtn.className = "send-button"; /* Use existing send-button style */
                         saveBtn.style.marginTop = "1rem";
                         saveBtn.onclick = function() {
                             saveChatToServer({ chat: chatHistory, stressScore: stressScore });

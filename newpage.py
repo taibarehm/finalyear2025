@@ -1,181 +1,223 @@
 import os
 import numpy as np
 import base64
-from flask import Flask, render_template, request, jsonify
+import json
+import random
+
+from flask import Flask, render_template, request, jsonify, redirect, url_for
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing.image import img_to_array
 from PIL import Image
-from flask import Flask, render_template, request, jsonify 
 import io
 import pickle
-import cv2  
+import cv2
+
 app = Flask(__name__)
-model = load_model('model.h5')
-class_labels = ['nostress', 'stress']
-# Load the trained model
+
+# --- Load Models ---
 try:
-    with open('catboost_stress_model.pkl', 'rb') as f:
-        model2 = pickle.load(f)
+    model = load_model('stress_detection_model.h5')
+    class_labels = ['nostress', 'stress']
 except Exception as e:
-    print(f"Error loading the model: {e}")
-    model2 = None # Handle case where model loading fails
+    print(f"Error loading Keras model: {e}")
+    model = None
 
-@app.route('/', methods=['GET'])
-def index():
-    return render_template('index.html')
-@app.route('/face', methods=['GET', 'POST'])
-def face_detection():
-    print("into facedetection")
-    prediction = None
-    if request.method == 'POST':
-        image_data = request.form.get('image_data')
-        if image_data:
-            # Decode base64 image
-            image_data = image_data.split(',')[1]
-            img_bytes = base64.b64decode(image_data)
-            img = Image.open(io.BytesIO(img_bytes)).convert('L')
-            img_np = np.array(img)
+try:
+    with open('questionar_stress_model.pkl', 'rb') as f:
+        model2 = pickle.load(f)
+        
+except Exception as e:
+    print(f"Error loading the CatBoost model: {e}")
+    model2 = None
 
-            # Face detection using OpenCV
-            face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
-            faces = face_cascade.detectMultiScale(img_np, 1.3, 5)
-            if len(faces) > 0:
-                x, y, w, h = faces[0]
-                face_img = img_np[y:y+h, x:x+w]
-                face_img = cv2.resize(face_img, (48, 48))
-                print(f"Face region: x={x}, y={y}, w={w}, h={h}")
-                print("Face image shape:", face_img.shape)
-                img_array = img_to_array(face_img) / 255.0
-                img_array = np.expand_dims(img_array, axis=0)
-                pred = model.predict(img_array)
-                print("Prediction probabilities:", pred)
-                pred_class = class_labels[np.argmax(pred)]
-                print("Predicted class:", pred_class)
-                prediction = f"Prediction: {pred_class} (confidence: {np.max(pred):.2f})"
-            else:
-                prediction = "No face detected. Please try again."
-    return render_template('face.html', prediction=prediction)
+# --- Store session data ---
+user_data = {}
 
-
+# --- Utility Functions ---
 def get_ai_insight(stress_score):
-    """Provides a basic AI-driven insight based on the stress score."""
     if stress_score <= 5:
         return "Excellent! Your stress levels are very low. Keep up your positive habits."
     elif stress_score <= 12:
-        return "You're experiencing moderate stress. It's a good time to consider relaxation techniques."
+        return "You're experiencing moderate stress. Consider relaxation techniques."
     elif stress_score <= 20:
-        return "Your stress level is high. This calls for active self-care and potentially seeking support."
+        return "Your stress level is high. Prioritize self-care."
     else:
-        return "Very high stress detected. Please prioritize your well-being and consider professional help."
+        return "Very high stress detected. Consider professional help."
 
 def get_chatbot_response(user_message):
     user_message_lower = user_message.lower()
     if "hello" in user_message_lower or "hi" in user_message_lower:
         return "Hi there! How can I help you today regarding stress?"
     elif any(word in user_message_lower for word in ["how are you", "how r u"]):
-        return "I'm a chatbot, so I don't have feelings, but I'm ready to assist you! How are you feeling?"
+        return "I'm a chatbot, so I don't have feelings, but I'm ready to assist you!"
     elif "thank you" in user_message_lower or "thanks" in user_message_lower:
-        return "You're welcome! Is there anything else about stress or well-being I can help with?"
+        return "You're welcome! Is there anything else I can help with?"
     elif "stress" in user_message_lower and ("relief" in user_message_lower or "cope" in user_message_lower):
-        return "Stress relief can involve deep breathing, mindfulness, exercise, or talking to someone. What kind of strategies are you interested in?"
-    elif "sad" in user_message_lower or "depressed" in user_message_lower or "down" in user_message_lower:
-        return "I'm sorry to hear you're feeling that way. It's important to reach out for support if you're feeling persistently sad or depressed. Consider talking to a mental health professional or a trusted friend."
+        return "Stress relief can involve breathing, mindfulness, or talking to someone."
+    elif "sad" in user_message_lower or "depressed" in user_message_lower:
+        return "I'm sorry you're feeling this way. Consider reaching out for help."
     elif "anxious" in user_message_lower or "worried" in user_message_lower:
-        return "Anxiety can be tough. Try practicing grounding techniques, focusing on your breath, or identifying the root cause of your worries. If it's severe, professional help is recommended."
-    elif "tired" in user_message_lower or "exhausted" in user_message_lower:
-        return "Feeling tired can be a sign of stress. Ensure you're getting enough sleep and taking breaks throughout your day."
+        return "Anxiety can be tough. Try grounding techniques and breathing."
+    elif "tired" in user_message_lower:
+        return "Feeling tired can be a sign of stress. Ensure rest and self-care."
     elif "help" in user_message_lower:
-        return "I can help you assess your stress levels or provide general information and tips related to stress management. What do you need help with?"
-    elif "bye" in user_message_lower or "goodbye" in user_message_lower:
-        return "Goodbye! Take care of yourself. Feel free to chat again anytime."
-    elif "tell me more" in user_message_lower or "what else" in user_message_lower:
-        return "Is there a specific aspect of stress or well-being you'd like to explore further? I can discuss symptoms, causes, or coping mechanisms."
+        return "I can help assess your stress levels or provide coping tips."
+    elif "bye" in user_message_lower:
+        return "Goodbye! Take care of yourself."
+    elif "tell me more" in user_message_lower:
+        return "Is there a specific aspect of stress you'd like to explore?"
     elif "quiz" in user_message_lower or "assessment" in user_message_lower or "start" in user_message_lower:
-        return "If you'd like to start the stress assessment, please go to the main page or type 'yes' when prompted to restart."
-    return "I'm still learning! For now, I can help you with stress assessment via specific options. Or you can ask general questions about stress, feelings, or well-being. Try asking 'What helps with stress?' or 'I feel anxious'."
+        return "Please go to the main page or type 'yes' to restart assessment."
+    return "I'm still learning! Try asking about stress, feelings, or coping."
+
+def calculate_holistic_score_and_message(chatbot_score, questionnaire_score, face_score):
+    weights = {'chatbot': 0.3, 'questionnaire': 0.4, 'face': 0.3}
+    holistic_score = (
+        chatbot_score * weights['chatbot']
+        + questionnaire_score * weights['questionnaire']
+        + face_score * weights['face']
+    )
+
+    if holistic_score < 0.3:
+        final_message = "Low stress. Great job!"
+    elif holistic_score < 0.6:
+        final_message = "Moderate stress. Consider relaxing."
+    else:
+        final_message = "High stress. Professional advice may help."
+
+    return final_message, holistic_score
+
+# --- Routes ---
+@app.route('/')
+def index():
+    return render_template('index.html')
+@app.route('/boot.html')
+def boot_page():
+    return render_template('boot.html')
 
 @app.route('/handle-chat-input', methods=['POST'])
 def handle_chat_input():
     user_message = request.json.get('message', '')
-    print(f"Received general user message: '{user_message}'")
     bot_response = get_chatbot_response(user_message)
     return jsonify({'status': 'success', 'bot_message': bot_response})
 
-# --- Save Chat Route ---
 @app.route('/save-chat', methods=['POST'])
 def save_chat():
     data = request.json
-    chat_history = data.get('chat', [])
     received_stress_score = data.get('stressScore')
-    print("Received chat data from frontend:")
     if received_stress_score is not None:
-        print(f"Final Stress Score received: {received_stress_score}")
+        # Normalize 0–1
+        user_data['chatbot_score'] = received_stress_score / 64.0
         ai_recommendation = get_ai_insight(received_stress_score)
-        print(f"AI Recommendation (from assessment): {ai_recommendation}")
-        # Here you would typically save chat_history, received_stress_score, ai_recommendation to a database.
         return jsonify({'status': 'success', 'message': 'Chat data processed', 'ai_insight': ai_recommendation})
-    else:
-        return jsonify({'status': 'error', 'message': 'Stress score not provided.'}), 400
+    return jsonify({'status': 'error', 'message': 'Stress score not provided.'}), 400
 
-
-@app.route('/boot.html')
-def boot_page():
-    return render_template('boot.html')
-@app.route('/questionnaire', methods=['GET'])  
-def questionnaire_page(): 
-    
+@app.route('/questionnaire')
+def questionnaire_page():
     return render_template('questionnaire.html', message=None)
+@app.route('/save-questionnaire', methods=['POST'])
+def save_questionnaire():
+    try:
+        data = request.json
+        print("Received questionnaire data:", data)
+        return jsonify({'status': 'success', 'message': 'Questionnaire data saved successfully.'})
+    except Exception as e:
+        print(f"Error saving questionnaire data: {e}")
+        return jsonify({'status': 'error', 'message': 'Failed to save questionnaire data.'}), 500
+
+@app.route('/questionnaire-detect', methods=['POST'])
 @app.route('/questionnaire-detect', methods=['POST'])
 def questionnaire_detect():
-    """
-    Handles the submission of the questionnaire, processes the input,
-    and makes a prediction using the loaded CatBoost model.
-    """
     if model2 is None:
-        return jsonify({'success': False, 'message': "Error: Stress detection model not loaded. Please check server logs."}), 500
-
+        return jsonify({'success': False, 'message': "Error: Model not loaded."}), 500
     try:
+        data = request.json
         feature_names = [
-            'snoring_range',
-            'respiration_rate',
-            'body_temperature',
-            'limb_movement',
-            'blood_oxygen',
-            'eye_movement',
-            'hours_of_sleep',
-            'heart_rate'
+            'snoring_range', 'respiration_rate', 'body_temperature',
+            'limb_movement', 'blood_oxygen', 'eye_movement',
+            'hours_of_sleep', 'heart_rate'
         ]
+        features = [float(data[name]) for name in feature_names]
 
-        features = []
-        for feature_name in feature_names:
-            if feature_name not in request.form:
-                raise KeyError(f"Missing form data for '{feature_name}'. Please ensure all fields are filled.")
-            features.append(float(request.form[feature_name]))
-        print(f"Extracted features: {features}")
-        
-        pred = model2.predict([features])[0] 
-        stress_level = int(pred)
-        message = f"Predicted Stress Level: {stress_level}"
-        print(f"Prediction successful: {message}")
-        
-        # Return a JSON response for success
-        return jsonify({'success': True, 'message': message})
+        # Assuming model2 is the loaded multi-class model (like LGBM or CatBoost)
+        # You need to preprocess the features the same way as during training
+        # (e.g., scaling using the same scaler)
 
-    except KeyError as e:
-        message = f"Error: Missing form data. {e}. Please ensure all fields are filled."
-        print(f"KeyError: {message}")
-        # Return a JSON response for an error
-        return jsonify({'success': False, 'message': message}), 400
-    except ValueError as e:
-        message = f"Error: Invalid input data. Please enter numerical values. Details: {e}"
-        print(f"ValueError: {message}")
-        # Return a JSON response for an error
-        return jsonify({'success': False, 'message': message}), 400
+        # Example of scaling (assuming you have the scaler object available as `scaler`)
+        # input_df = pd.DataFrame([features], columns=feature_names)
+        # input_scaled = scaler.transform(input_df)
+        # predicted_stress_level = model2.predict(input_scaled)
+
+        # If you are not scaling here, ensure features match the model's expected input format
+        predicted_stress_level = int(model2.predict([features])[0]) # Get the predicted class label
+        user_data['questionnaire_score'] = predicted_stress_level
+        return jsonify({'success': True, 'message': f"Predicted Stress Level: {predicted_stress_level}"})
     except Exception as e:
-        message = f"An unexpected error occurred during prediction: {e}"
-        print(f"General Error: {message}")
-        # Return a JSON response for a general error
-        return jsonify({'success': False, 'message': message}), 500
+        return jsonify({'success': False, 'message': str(e)}), 400
+
+@app.route('/face', methods=['GET', 'POST'])
+def face_detection():
+    prediction = None
+    if request.method == 'POST':
+        image_data = request.form.get('image_data')
+        if image_data:
+            image_data = image_data.split(',')[1]
+            img_bytes = base64.b64decode(image_data)
+            img = Image.open(io.BytesIO(img_bytes)).convert('L')
+            img_np = np.array(img)
+
+            face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
+            faces = face_cascade.detectMultiScale(img_np, 1.3, 5)
+            if len(faces) > 0:
+                x, y, w, h = faces[0]
+                face_img = img_np[y:y+h, x:x+w]
+                face_img = cv2.resize(face_img, (48, 48))
+                img_array = img_to_array(face_img) / 255.0
+                img_array = np.expand_dims(img_array, axis=0)
+                pred = model.predict(img_array)
+                pred_class_index = np.argmax(pred)
+                pred_class = class_labels[pred_class_index]
+                confidence = float(np.max(pred))
+                if pred_class == 'stress':
+                    face_score = confidence
+                else:
+                    face_score = 1 - confidence
+                user_data['face_score'] = face_score
+                prediction = f"Facial Prediction: {pred_class} (confidence: {confidence:.2f})."
+            else:
+                prediction = "No face detected."
+    return render_template('face.html', prediction=prediction)
+
+@app.route('/holistic_report', methods=['GET', 'POST'])
+def holistic_report():
+    print("User data:", user_data)
+    
+    # Initialize variables to None to prevent UndefinedError
+    final_message = "Not enough data to complete assessment."
+    holistic_score = None
+    chatbot_score = None
+    questionnaire_score = None
+    face_score = None
+
+    if all(k in user_data for k in ('chatbot_score', 'questionnaire_score', 'face_score')):
+        final_message, holistic_score = calculate_holistic_score_and_message(
+            user_data['chatbot_score'],
+            user_data['questionnaire_score'],
+            user_data['face_score']
+        )
+        chatbot_score = user_data['chatbot_score']
+        questionnaire_score = user_data['questionnaire_score']
+        face_score = user_data['face_score']
+        print(f"Final message: {final_message}, Holistic score: {holistic_score}")
+    # Optional: Clear session after viewing
+    user_data.clear()
+    
+    return render_template('holistic_report.html',
+                           final_message=final_message,
+                           holistic_score=holistic_score,
+                           chatbot_score=chatbot_score,
+                           questionnaire_score=questionnaire_score,
+                           face_score=face_score)
 
 if __name__ == '__main__':
     app.run(debug=True)

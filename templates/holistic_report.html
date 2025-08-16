@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Holistic Stress Report</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a;
+            color: #e2e8f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        .container {
+            background-color: #1e293b;
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -2px rgba(0, 0, 0, 0.1);
+            padding: 3rem;
+            max-width: 700px;
+            width: 100%;
+            text-align: center;
+        }
+        .btn {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transition: all 0.3s ease;
+        }
+        .btn-indigo {
+            background-color: #4f46e5;
+            color: white;
+        }
+        .btn-indigo:hover {
+            background-color: #4338ca;
+        }
+        .btn-slate {
+            background-color: #475569;
+            color: white;
+        }
+        .btn-slate:hover {
+            background-color: #334155;
+        }
+        #report-message {
+            margin-bottom: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-3xl font-bold mb-6 text-indigo-400">Holistic Stress Report</h1>
+        <div id="report-message">
+            {% if holistic_score is not none %}
+                <h2 class="text-2xl font-semibold mb-4">Final Assessment: {{ final_message }}</h2>
+                <h3 class="text-xl font-medium mb-2">Individual Scores:</h3>
+                <ul class="text-lg list-disc list-inside space-y-1 mx-auto text-left w-fit">
+                    <li>Chatbot Score: {{ "%.2f"|format(chatbot_score) }}</li>
+                    <li>Questionnaire Score: {{ "%.2f"|format(questionnaire_score) }}</li>
+                    <li>Face Detection Score: {{ "%.2f"|format(face_score) }}</li>
+                </ul>
+                <p class="mt-6 text-base text-slate-400">
+                    This report provides a holistic assessment based on your verbal responses, physiological data, and facial expressions.
+                </p>
+            {% else %}
+                <p class="text-xl leading-relaxed text-slate-300">{{ final_message }}</p>
+            {% endif %}
+        </div>
+        
+        <div class="flex flex-col sm:flex-row justify-center gap-4 mt-6">
+            <button id="download-btn" class="btn btn-slate">
+                Download Report
+            </button>
+            <a href="/" class="btn btn-indigo">
+                Start New Assessment
+            </a>
+        </div>
+    </div>
+
+    <script>
+        const downloadBtn = document.getElementById('download-btn');
+        const reportMessageEl = document.getElementById('report-message');
+
+        downloadBtn.addEventListener('click', () => {
+            const reportText = reportMessageEl.innerText;
+            const blob = new Blob([reportText], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            
+            a.href = url;
+            a.download = 'holistic_stress_report.txt';
+            document.body.appendChild(a);
+            a.click();
+
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        });
+    </script>
+</body>
+</html>

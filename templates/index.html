@@ -8,47 +8,44 @@
     <meta name="description" content="Leading Tech Partner for Innovative Software Solutions and Digital Transformation">
     <meta name="author" content="Your Company Name">
 
-    <title>Stress delection</title>
+    <title>Stress Detection</title>
 
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet" type="text/css">
-<style>
-body {
-    margin: 0;
-    font-family: 'Poppins', 'Roboto', Arial, sans-serif;
-    background-color: #0d111d; /* Dark background */
-    color: #ffffff;
-    background-image: url("{{ url_for('static', filename='image/background.png') }}");
-    background-size: cover;
-    background-repeat: no-repeat;
-    background-attachment: fixed;
-    }
-
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Poppins', 'Roboto', Arial, sans-serif;
+            background-color: #0d111d;
+            color: #ffffff;
+            background-image: url("{{ url_for('static', filename='image/background.png') }}");
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }
 
         .navbar {
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 15px 50px;
-            background-color: rgba(0, 0, 0, 0.3); /* Slightly transparent background for the nav */
+            background-color: rgba(0, 0, 0, 0.3);
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
-            box-sizing: border-box; /* Include padding in width */
+            box-sizing: border-box;
             z-index: 1000;
         }
 
         .navbar-logo {
-            /* Replace with your actual logo */
             font-size: 24px;
             font-weight: 700;
             color: #ffffff;
             text-decoration: none;
-            /* Placeholder for an actual logo image if you have one */
-            width: 40px; /* Example size */
-            height: 40px; /* Example size */
-            background-color: #2e7bff; /* Example background for logo if it's an icon/shape */
+            width: 40px;
+            height: 40px;
+            background-color: #2e7bff;
             border-radius: 50%;
             display: flex;
             justify-content: center;
@@ -74,11 +71,11 @@ body {
         }
 
         .nav-item .nav-link:hover {
-            color: #61dafb; /* Example hover color */
+            color: #61dafb;
         }
 
         .nav-item .nav-link.dropdown::after {
-            content: '\f0d7'; /* Font Awesome caret-down icon */
+            content: '\f0d7';
             font-family: 'Font Awesome 6 Free';
             font-weight: 900;
             margin-left: 8px;
@@ -107,14 +104,14 @@ body {
         }
 
         .lang-selector::after {
-            content: '\f0d7'; /* Font Awesome caret-down icon */
+            content: '\f0d7';
             font-family: 'Font Awesome 6 Free';
             font-weight: 900;
             margin-left: 8px;
         }
 
         .contact-us-btn {
-            background-color: #2e7bff; /* Blue color from the image */
+            background-color: #2e7bff;
             color: #ffffff;
             padding: 10px 20px;
             border-radius: 25px;
@@ -127,19 +124,28 @@ body {
         }
 
         .contact-us-btn:hover {
-            background-color: #1a5acf; /* Darker blue on hover */
+            background-color: #1a5acf;
+        }
+
+        .hero-section,
+        .solutions-section,
+        .about-section {
+            padding: 80px 50px;
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+            /* Ensures proper spacing and positioning */
         }
 
         .hero-section {
-            position: relative;
-            height: 100vh; /* Full viewport height */
+            height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
             text-align: center;
             color: #ffffff;
             overflow: hidden;
-            background: url('assets/bg.jpg') no-repeat center center/cover; /* Replace with your image path */
+            background: url('assets/bg.jpg') no-repeat center center/cover;
         }
 
         .hero-section::before {
@@ -149,7 +155,7 @@ body {
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0, 0, 0, 0.4); /* Dark overlay for better text readability */
+            background: rgba(0, 0, 0, 0.4);
             z-index: 1;
         }
 
@@ -168,7 +174,7 @@ body {
         }
 
         .get-in-touch-btn {
-            background-color: #2e7bff; /* Blue color from the image */
+            background-color: #2e7bff;
             color: #ffffff;
             padding: 15px 30px;
             border-radius: 30px;
@@ -181,25 +187,92 @@ body {
         }
 
         .get-in-touch-btn:hover {
-            background-color: #1a5acf; /* Darker blue on hover */
+            background-color: #1a5acf;
         }
 
-        /* Basic responsiveness for smaller screens */
+        .section-title {
+            font-size: 40px;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 60px;
+            color: #2e7bff;
+        }
+
+        .section-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+        }
+
+        .content-block {
+            background-color: rgba(255, 255, 255, 0.05);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .content-block:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .block-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #61dafb;
+            margin-bottom: 15px;
+        }
+
+        .block-text {
+            font-size: 16px;
+            line-height: 1.6;
+            color: #e0e0e0;
+        }
+
+        .block-list {
+            list-style-type: none;
+            padding-left: 0;
+            font-size: 16px;
+            line-height: 1.6;
+            color: #e0e0e0;
+        }
+
+        .block-list li {
+            position: relative;
+            padding-left: 25px;
+            margin-bottom: 10px;
+        }
+
+        .block-list li::before {
+            content: '\f00c';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            color: #61dafb;
+            position: absolute;
+            left: 0;
+            top: 2px;
+        }
+
         @media (max-width: 768px) {
             .navbar {
                 flex-direction: column;
                 gap: 15px;
                 padding: 15px 20px;
             }
+
             .navbar-nav {
                 flex-direction: column;
                 gap: 10px;
                 text-align: center;
             }
+
             .navbar-actions {
                 flex-direction: column;
                 gap: 10px;
             }
+
             .hero-title {
                 font-size: 36px;
             }
@@ -209,12 +282,12 @@ body {
             .hero-title {
                 font-size: 28px;
             }
+
             .get-in-touch-btn {
                 padding: 12px 25px;
                 font-size: 16px;
             }
         }
-
     </style>
 </head>
 
@@ -226,26 +299,70 @@ body {
             <a href="#" class="navbar-logo">
                 <i class="fas fa-infinity"></i> </a>
             <ul class="navbar-nav">
-                <li class="nav-item"><a href="#" class="nav-link">Home</a></li>
-                <li class="nav-item"><a href="#" class="nav-link">Service</a></li>
-                <li class="nav-item"><a href="#" class="nav-link ">Solutions</a></li>
-                <li class="nav-item"><a href="#" class="nav-link">About us</a></li>
+                <li class="nav-item"><a href="#home" class="nav-link">Home</a></li>
+                <li class="nav-item"><a href="#solutions" class="nav-link">Solutions</a></li>
+                <li class="nav-item"><a href="#about-us" class="nav-link">About Our Project</a></li>
             </ul>
-            <div class="navbar-actions">
-    
-                <a href="#" class="contact-us-btn">
-                    Contact Us <i class="fas fa-chevron-right"></i>
-                </a>
-            </div>
+            
         </nav>
 
-       <div class="hero-section">
-        <div class="hero-content">
-            <h1 class="hero-title">Navigate Stress with Confidence: Your Path to Well-being</h1>
-            <form action="boot.html">
-                <button type="submit" class="get-in-touch-btn">Ready to Test Your Stress?</button>
-            </form>
+        <div id="home" class="hero-section">
+            <div class="hero-content">
+                <h1 class="hero-title">Navigate Stress with Confidence: Your Path to Well-being</h1>
+                <form action="boot.html">
+                    <button type="submit" class="get-in-touch-btn">Ready to Test Your Stress?</button>
+                </form>
+            </div>
         </div>
+
+        <section id="solutions" class="solutions-section">
+            <h2 class="section-title">Our Multi-Modal Solution</h2>
+            <div class="section-content">
+                <div class="content-block">
+                    <h3 class="block-title">A Comprehensive Approach</h3>
+                    <p class="block-text">We propose a robust platform that combines insights from three distinct yet complementary data sources: Subjective Experiences (user self-report), Objective Cues (facial expressions), and Physiological Data (bodily metrics). By fusing these diverse data types, our system aims for a more comprehensive and precise assessment of psychological stress.</p>
+                </div>
+                <div class="content-block">
+                    <h3 class="block-title">Key Components & Features</h3>
+                    <ul class="block-list">
+                        <li>**Chatbot-based Self-Report Questionnaires:** An intuitive interface for users to report their subjective stress experiences.</li>
+                        <li>**Facial Expression Analysis:** Utilizes computer vision techniques to identify subtle facial movements indicative of stress.</li>
+                        <li>**Physiological Data Integration:** Incorporates bodily metrics such as heart rate, respiration rate, and body temperature.</li>
+                        <li>**Machine Learning Models:** Employs advanced deep learning architectures like Convolutional Neural Networks (CNNs) and Recurrent Neural Networks (RNNs) to fuse and analyze multi-modal data for stress prediction.</li>
+                        <li>**Streamlit Web Application:** The central hub for data collection, storage, analysis, and visualization.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="about-us" class="about-section">
+            <h2 class="section-title">About Our Project</h2>
+            <div class="section-content">
+
+                <div class="content-block">
+                    <h3 class="block-title">Project Overview</h3>
+                    <p class="block-text">This project focuses on developing a comprehensive, multi-modal platform for accurate human stress detection. By integrating various data sources, we aim to provide a more complete and precise understanding of an individual's stress levels, moving beyond the limitations of traditional, single-source approaches.</p>
+                </div>
+
+                <div class="content-block">
+                    <h3 class="block-title">The Problem</h3>
+                    <p class="block-text">Traditional methods for stress evaluation often fall short due to their inability to account for individual differences and the complex, context-dependent nature of stress. This leads to an incomplete and potentially inaccurate assessment of an individual's true psychological state.</p>
+                </div>
+
+                <div class="content-block">
+                    <h3 class="block-title">Preliminary Results</h3>
+                    <p class="block-text">Initial model training on physiological data has shown highly promising results with a **CatBoostClassifier** achieving **100% accuracy** on the training and test sets. While this is excellent, we acknowledge the need to consider potential overfitting and dataset characteristics.</p>
+                </div>
+
+                <div class="content-block">
+                    <h3 class="block-title">Outcomes & Impact</h3>
+                    <p class="block-text">The primary outcome is a working prototype demonstrating the feasibility and effectiveness of leveraging AI and machine learning for comprehensive human stress detection. This research has the potential to enable personalized interventions and significantly improve individual well-being.</p>
+                </div>
+
+            </div>
+        </section>
+
     </div>
 </body>
+
 </html>

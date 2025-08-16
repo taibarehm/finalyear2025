@@ -6,14 +6,16 @@
     <title>Face Detection</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+           font-family: 'Poppins', sans-serif; /* Changed font */
+            background-color: #0d111d; /* Dark background */
+            color: #e0e6f1; /* Light text */
             display: flex;
-            flex-direction: column;
-            align-items: center;
             justify-content: center;
+            align-items: center;
             min-height: 100vh;
             margin: 0;
-            background-color: #f4f4f4;
+            padding: 20px;
+            box-sizing: border-box; 
         }
         .container {
             background-color: #fff;
@@ -46,6 +48,7 @@
             border-radius: 5px;
             cursor: pointer;
             transition: background-color 0.3s ease;
+            margin: 5px; /* Add some margin for spacing */
         }
         button:hover {
             background-color: #0056b3;
@@ -61,6 +64,9 @@
             font-weight: bold;
             margin-top: 10px;
         }
+        #nextButton {
+            display: none; /* Initially hide the button */
+        }
     </style>
 </head>
 <body>
@@ -68,6 +74,7 @@
         <h1>Live Face Detection</h1>
         <video id="videoElement" autoplay playsinline></video>
         <button id="captureButton">Capture & Predict</button>
+        
         <canvas id="canvasElement"></canvas>
         <div id="predictionResult">
             {% if prediction %}
@@ -76,84 +83,97 @@
                 Click "Capture & Predict" to analyze.
             {% endif %}
         </div>
+        <button id="nextButton">Go to Holistic Report</button>        
         <div id="errorMessage" class="error"></div>
     </div>
 
     <script>
-        const video = document.getElementById('videoElement');
-        const canvas = document.getElementById('canvasElement');
-        const context = canvas.getContext('2d');
-        const captureButton = document.getElementById('captureButton');
-        const predictionResult = document.getElementById('predictionResult');
-        const errorMessage = document.getElementById('errorMessage');
+    const video = document.getElementById('videoElement');
+    const canvas = document.getElementById('canvasElement');
+    const context = canvas.getContext('2d');
+    const captureButton = document.getElementById('captureButton');
+    const nextButton = document.getElementById('nextButton');
+    const predictionResult = document.getElementById('predictionResult');
+    const errorMessage = document.getElementById('errorMessage');
 
-        // Request access to the webcam
-        async function startWebcam() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                video.srcObject = stream;
-                video.onloadedmetadata = () => {
-                    // Set canvas dimensions to match video
-                    canvas.width = video.videoWidth;
-                    canvas.height = video.videoHeight;
-                    console.log('Webcam started:', video.videoWidth, 'x', video.videoHeight);
-                };
-            } catch (err) {
-                console.error('Error accessing webcam:', err);
-                errorMessage.textContent = 'Could not start webcam. Please ensure camera access is allowed.';
-            }
+    // Request access to the webcam
+    async function startWebcam() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            video.srcObject = stream;
+            video.onloadedmetadata = () => {
+                // Set canvas dimensions to match video
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                console.log('Webcam started:', video.videoWidth, 'x', video.videoHeight);
+            };
+        } catch (err) {
+            console.error('Error accessing webcam:', err);
+            errorMessage.textContent = 'Could not start webcam. Please ensure camera access is allowed.';
         }
+    }
 
-        // Capture image and send to server
-        captureButton.addEventListener('click', () => {
-            if (video.srcObject) {
-                errorMessage.textContent = ''; // Clear previous errors
+    // Capture image and send to server
+    captureButton.addEventListener('click', () => {
+        if (video.srcObject) {
+            errorMessage.textContent = ''; // Clear previous errors
+            nextButton.style.display = 'none'; // Hide the next button on new capture
 
-                // Draw the current video frame onto the canvas
-                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            // Draw the current video frame onto the canvas
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-                // Get image data as base64 string
-                const imageData = canvas.toDataURL('image/jpeg', 0.9); // Use JPEG for smaller size
+            // Get image data as base64 string
+            const imageData = canvas.toDataURL('image/jpeg', 0.9);
 
-                // Send data to Flask backend
-                sendImageToServer(imageData);
-            } else {
-                errorMessage.textContent = 'Webcam not active. Please allow camera access.';
-            }
-        });
-
-        async function sendImageToServer(imageData) {
-            predictionResult.textContent = 'Processing...'; // Show loading state
-            try {
-                const response = await fetch('/', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: `image_data=${encodeURIComponent(imageData)}`
-                });
-
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-
-                const htmlResponse = await response.text();
-             
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(htmlResponse, 'text/html');
-                const newPrediction = doc.getElementById('predictionResult').innerText.trim();
-                
-                predictionResult.textContent = newPrediction;
-
-            } catch (error) {
-                console.error('Error sending image:', error);
-                predictionResult.textContent = ''; // Clear processing message
-                errorMessage.textContent = 'Error during prediction: ' + error.message;
-            }
+            // Send data to Flask backend
+            sendImageToServer(imageData);
+        } else {
+            errorMessage.textContent = 'Webcam not active. Please allow camera access.';
         }
+    });
 
-        // Start webcam when the page loads
-        window.onload = startWebcam;
-    </script>
+    async function sendImageToServer(imageData) {
+        predictionResult.textContent = 'Processing...';
+        try {
+            const response = await fetch('/face', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `image_data=${encodeURIComponent(imageData)}`
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const htmlResponse = await response.text();
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(htmlResponse, 'text/html');
+            const newPrediction = doc.getElementById('predictionResult').innerText.trim();
+            
+            predictionResult.textContent = newPrediction;
+            
+            // Check if the prediction is successful and show the "Next" button
+            // If the prediction result is not empty, display the next button
+            if (newPrediction && newPrediction !== 'Processing...') {
+                nextButton.style.display = 'inline-block';
+            }
+
+        } catch (error) {
+            console.error('Error sending image:', error);
+            predictionResult.textContent = '';
+            errorMessage.textContent = 'Error during prediction: ' + error.message;
+        }
+    }
+    
+    // Listen for the click event on the "Go to Holistic Report" button
+    nextButton.addEventListener('click', () => {
+        window.location.href = '/holistic_report';
+    });
+
+    // Start webcam when the page loads
+    window.onload = startWebcam;
+</script>
 </body>
 </html>

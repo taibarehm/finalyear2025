@@ -16,14 +16,14 @@ app = Flask(__name__)
 
 # --- Load Models ---
 try:
-    model = load_model('stress_detection_model.h5')
+    model = load_model('model/stress_detection_model.h5')
     class_labels = ['nostress', 'stress']
 except Exception as e:
     print(f"Error loading Keras model: {e}")
     model = None
 
 try:
-    with open('questionar_stress_model.pkl', 'rb') as f:
+    with open('model/questionar_stress_model.pkl', 'rb') as f:
         model2 = pickle.load(f)
         
 except Exception as e:

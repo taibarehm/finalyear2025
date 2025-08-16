@@ -1,0 +1,23 @@
+Flask
+tensorflow
+numpy
+Pillow
+opencv-python
+scikit-learn
+catboost
+pandas
+matplotlib
+jinja2
+requests
+python-dotenv
+jupyter
+ipykernel
+# Optional but recommended for development and deployment:
+gunicorn
+flask-cors
+# For interactive widgets in Jupyter (optional)
+ipywidgets
+# For exporting notebooks (optional)
+nbconvert
+# For YAML config files (optional)
+pyyaml

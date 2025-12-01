@@ -14,7 +14,6 @@ import cv2
 
 app = Flask(__name__)
 
-# --- Load Models ---
 try:
     model = load_model('model/stress_detection_model.h5')
     class_labels = ['nostress', 'stress']
@@ -30,10 +29,9 @@ except Exception as e:
     print(f"Error loading the CatBoost model: {e}")
     model2 = None
 
-# --- Store session data ---
 user_data = {}
 
-# --- Utility Functions ---
+
 def get_ai_insight(stress_score):
     if stress_score <= 5:
         return "Excellent! Your stress levels are very low. Keep up your positive habits."
@@ -71,6 +69,7 @@ def get_chatbot_response(user_message):
     return "I'm still learning! Try asking about stress, feelings, or coping."
 
 def calculate_holistic_score_and_message(chatbot_score, questionnaire_score, face_score):
+    print("chatbot_score :  ",chatbot_score, "questionnaire_score :  ",questionnaire_score,"face_score :  ",face_score  )
     weights = {'chatbot': 0.3, 'questionnaire': 0.4, 'face': 0.3}
     holistic_score = (
         chatbot_score * weights['chatbot']
@@ -126,7 +125,6 @@ def save_questionnaire():
         return jsonify({'status': 'error', 'message': 'Failed to save questionnaire data.'}), 500
 
 @app.route('/questionnaire-detect', methods=['POST'])
-@app.route('/questionnaire-detect', methods=['POST'])
 def questionnaire_detect():
     if model2 is None:
         return jsonify({'success': False, 'message': "Error: Model not loaded."}), 500
@@ -139,19 +137,11 @@ def questionnaire_detect():
         ]
         features = [float(data[name]) for name in feature_names]
 
-        # Assuming model2 is the loaded multi-class model (like LGBM or CatBoost)
-        # You need to preprocess the features the same way as during training
-        # (e.g., scaling using the same scaler)
-
-        # Example of scaling (assuming you have the scaler object available as `scaler`)
-        # input_df = pd.DataFrame([features], columns=feature_names)
-        # input_scaled = scaler.transform(input_df)
-        # predicted_stress_level = model2.predict(input_scaled)
-
-        # If you are not scaling here, ensure features match the model's expected input format
-        predicted_stress_level = int(model2.predict([features])[0]) # Get the predicted class label
-        user_data['questionnaire_score'] = predicted_stress_level
-        return jsonify({'success': True, 'message': f"Predicted Stress Level: {predicted_stress_level}"})
+        print("Feayure requested :",features)
+        predicted_stress_level = int(model2.predict([features])) 
+        print("predicted_stress_level",predicted_stress_level)
+        user_data['questionnaire_score'] = predicted_stress_level/3
+        return jsonify({'success': True, 'message': f"Physiological Questionnaire Stress Level: {predicted_stress_level}"})
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 400
 

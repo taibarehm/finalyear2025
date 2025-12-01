@@ -11,8 +11,13 @@ from PIL import Image
 import io
 import pickle
 import cv2
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key')
 
 try:
     model = load_model('model/stress_detection_model.h5')
@@ -211,6 +216,8 @@ def holistic_report():
 
 
 
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 10000))
-    app.run(debug=False, host='0.0.0.0', port=port)
+    debug = os.environ.get('FLASK_ENV') == 'development'
+    app.run(debug=debug, host='0.0.0.0', port=port)

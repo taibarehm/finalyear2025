@@ -209,5 +209,8 @@ def holistic_report():
                            questionnaire_score=questionnaire_score,
                            face_score=face_score)
 
+
+
 if __name__ == '__main__':
-    app.run(debug=True)
+    port = int(os.environ.get('PORT', 10000))
+    app.run(debug=False, host='0.0.0.0', port=port)
